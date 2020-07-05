@@ -13,55 +13,77 @@ Just specify your object's shape + validation rules and `useForm` gives you a `f
 ## Usage
 
 ```TSX
+import React from 'react'
 import { useForm, field, Field } from "@ginger.io/react-use-form"
 
-type Widget = {
+type Person = {
   name: string
-  details: Details
-  component: Component
+  phone: string
+  address: Address
 }
 
-type Component = {
-  id: string
+type Address = {
+  street: string
+  zip: number
 }
 
-type Details = {
-  description: string
-}
-
-
-function WidgetForm(props: {}) {
-  const { fields, validate, getValue } = useForm<Widget>({
+function PersonForm(props: {}) {
+  const { fields, validate, getValue } = useForm<Person>({
     name: field(),
-    components: field(),
-    details: {
-      description: field(),
+    phone: field(),
+    address: {
+      street: field(),
+      zip: field({
+        rules: [
+          zip => (zip.toString().length === 5 ? undefined : 'Invalid zip code')
+        ]
+      })
     }
   })
 
   const onSubmit = () => {
     if (validate()) { // trigger validation
-      console.log(getValue()) // get your fully-formed Widget
+      console.log(getValue()) // get your fully-formed Person
     }
   }
 
   return (
     <>
-      <TextField label="Name" field={fields.name}> />
-      <TextField label="Description" field={fields.details.description} />
-      <TextField label="Commponent Id" field={fields.component.id} />
+      <TextField label="Name" field={fields.name} />
+      <TextField label="Phone" field={fields.phone} />
+      <TextField label="Street" field={fields.address.street} />
+      <NumberField label="Zip" field={fields.address.zip} />
       <button onClick={onSubmit} />
     </>
   )
 }
 
-function TextField(props: { label: string, field: Field<string> }) {
+function TextField(props: { label: string; field: Field<string> }) {
   const { label, field } = props
   return (
     <>
-    <label>{label}</label>
-    <input value={field.value} onChange={field.onChange} >
-    <p>{field.error}</p>
+      <label>{label}</label>
+      <input
+        type="text"
+        value={field.value}
+        onChange={e => field.onChange(e.target.value)}
+      />
+      <p>{field.error}</p>
+    </>
+  )
+}
+
+function NumberField(props: { label: string; field: Field<number> }) {
+  const { label, field } = props
+  return (
+    <>
+      <label>{label}</label>
+      <input
+        type="number"
+        value={field.value}
+        onChange={e => field.onChange(parseInt(e.target.value))}
+      />
+      <p>{field.error}</p>
     </>
   )
 }
