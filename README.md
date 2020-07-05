@@ -13,6 +13,8 @@ Just specify your object's shape + validation rules and `useForm` gives you a `f
 ## Usage
 
 ```TSX
+import { useForm, field } from "@ginger.io/react-use-form"
+
 type Widget = {
   name: string
   details: Details
@@ -29,7 +31,7 @@ type Details = {
 
 
 function WidgetForm(props: {}) {
-  const { fields, validate, getValue } = useFormState<Widget>({
+  const { fields, validate, getValue } = useForm<Widget>({
     name: field(),
     components: field(),
     details: {
