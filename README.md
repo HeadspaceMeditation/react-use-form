@@ -13,7 +13,7 @@ Just specify your object's shape + validation rules and `useForm` gives you a `f
 ## Usage
 
 ```TSX
-import { useForm, field } from "@ginger.io/react-use-form"
+import { useForm, field, Field } from "@ginger.io/react-use-form"
 
 type Widget = {
   name: string
