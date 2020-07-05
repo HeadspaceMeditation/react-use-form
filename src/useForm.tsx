@@ -25,7 +25,7 @@ export function useForm<T extends Record<string, any>>(
 
   const getValue = useCallback(() => {
     return produce(state, t => {
-      forEveryProp<FieldState<any>>(state, (path, { value }) => {
+      forEach<FieldState<any>>(state, (path, { value }) => {
         set(t, path, value)
       })
     }) as T
@@ -36,7 +36,7 @@ export function useForm<T extends Record<string, any>>(
 
 function getInitialState<T>(fieldDefs: FieldDefinitions<T>): FieldsState<T> {
   return produce(fieldDefs, initialState => {
-    forEveryProp<FieldDefinition<any>>(
+    forEach<FieldDefinition<any>>(
       fieldDefs,
       (path, { rules, default: value, __type }) => {
         set(initialState, path, { rules, value, __type })
@@ -50,7 +50,7 @@ function createFields<T>(
   setState: (state: FieldsState<T>) => void
 ): Fields<T> {
   return (produce(state, fields => {
-    forEveryProp<FieldState<any>>(
+    forEach<FieldState<any>>(
       state,
       (path, { value, error, touched, rules }) => {
         set(fields, path, {
@@ -83,7 +83,7 @@ function runValidation<T>(
 ): boolean {
   let isValid = true
   const updatedState = produce(state, updatedState => {
-    forEveryProp(state, (path, field) => {
+    forEach(state, (path, field) => {
       const { rules, value } = (field as unknown) as FieldState<T>
       const error = rules.map(r => r(value)).find(_ => _ !== undefined)
       set(updatedState, [...path, 'error'], error)
@@ -97,8 +97,11 @@ function runValidation<T>(
   return isValid
 }
 
-/** Recursively calls f() for every property in object */
-function forEveryProp<T>(
+/** Recursively calls f() for each property in object
+ *  This methohd assumes "leaf" properties have been tagged with
+ *  __type: "Leaf"
+ */
+function forEach<T>(
   object: Record<string, any>,
   f: (path: string[], value: T) => void,
   path: string[] = []
@@ -110,7 +113,7 @@ function forEveryProp<T>(
     if (field !== undefined && field.__type === 'Leaf') {
       f(currentPath, field)
     } else {
-      forEveryProp(field, f as any, currentPath)
+      forEach(field, f as any, currentPath)
     }
   }
 }
