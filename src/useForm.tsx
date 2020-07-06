@@ -13,6 +13,7 @@ export type UseForm<T> = {
   fields: Fields<T> // field bindings
   validate: () => boolean // trigger validation
   getValue: () => T // retrieve the current form value
+  isEmpty: boolean // true if all fields are undefined, null or ""
 }
 
 export function useForm<T extends Record<string, any>>(
@@ -23,19 +24,35 @@ export function useForm<T extends Record<string, any>>(
   const fields = useMemo(() => createFields(state, setState), [state])
   const validate = useCallback(() => runValidation(state, setState), [state])
 
+  const isEmpty = useMemo(() => {
+    let isEmpty = true
+    forEach<FieldsState<T>>(state, (_, { value }: any) => {
+      if (
+        value !== undefined &&
+        value !== null &&
+        value !== '' &&
+        !isEmptyArray(value)
+      ) {
+        isEmpty = false
+      }
+    })
+
+    return isEmpty
+  }, [state])
+
   const getValue = useCallback(() => {
-    return produce(state, t => {
+    return produce(state, (t) => {
       forEach<FieldState<any>>(state, (path, { value }) => {
         set(t, path, value)
       })
     }) as T
   }, [state])
 
-  return { getValue, validate, fields }
+  return { getValue, validate, fields, isEmpty }
 }
 
 function getInitialState<T>(fieldDefs: FieldDefinitions<T>): FieldsState<T> {
-  return produce(fieldDefs, initialState => {
+  return produce(fieldDefs, (initialState) => {
     forEach<FieldDefinition<any>>(
       fieldDefs,
       (path, { rules, default: value, __type }) => {
@@ -49,7 +66,7 @@ function createFields<T>(
   state: FieldsState<T>,
   setState: (state: FieldsState<T>) => void
 ): Fields<T> {
-  return (produce(state, fields => {
+  return (produce(state, (fields) => {
     forEach<FieldState<any>>(
       state,
       (path, { value, error, touched, rules }) => {
@@ -58,15 +75,17 @@ function createFields<T>(
           error,
           touched,
           onChange: (updatedValue: any) => {
-            const updatedState = produce(state, updatedState => {
+            const updatedState = produce(state, (updatedState) => {
               set(updatedState, [...path, 'value'], updatedValue)
               set(updatedState, [...path, 'touched'], true)
             })
             setState(updatedState)
           },
           onBlur: () => {
-            const updatedState = produce(state, updatedState => {
-              const error = rules.map(r => r(value)).find(_ => _ !== undefined)
+            const updatedState = produce(state, (updatedState) => {
+              const error = rules
+                .map((r) => r(value))
+                .find((_) => _ !== undefined)
               set(updatedState, [...path, 'error'], error)
             })
             setState(updatedState)
@@ -82,10 +101,10 @@ function runValidation<T>(
   setState: (state: FieldsState<T>) => void
 ): boolean {
   let isValid = true
-  const updatedState = produce(state, updatedState => {
+  const updatedState = produce(state, (updatedState) => {
     forEach(state, (path, field) => {
       const { rules, value } = (field as unknown) as FieldState<T>
-      const error = rules.map(r => r(value)).find(_ => _ !== undefined)
+      const error = rules.map((r) => r(value)).find((_) => _ !== undefined)
       set(updatedState, [...path, 'error'], error)
       if (error) {
         isValid = false
@@ -116,4 +135,8 @@ function forEach<T>(
       forEach(field, f as any, currentPath)
     }
   }
+}
+
+function isEmptyArray(obj: any): boolean {
+  return Array.isArray(obj) && obj.length === 0
 }
