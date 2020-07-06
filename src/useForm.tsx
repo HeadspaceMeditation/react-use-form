@@ -25,19 +25,12 @@ export function useForm<T extends Record<string, any>>(
   const validate = useCallback(() => runValidation(state, setState), [state])
 
   const isEmpty = useMemo(() => {
-    let isEmpty = true
-    forEach<FieldsState<T>>(state, (_, { value }: any) => {
-      if (
-        value !== undefined &&
-        value !== null &&
-        value !== '' &&
-        !isEmptyArray(value)
-      ) {
-        isEmpty = false
-      }
-    })
+    const hasValue = exists<FieldsState<T>>(
+      state,
+      ({ value }: any) => !isEmptyObject(value)
+    )
 
-    return isEmpty
+    return !hasValue
   }, [state])
 
   const getValue = useCallback(() => {
@@ -144,6 +137,34 @@ function forEach<T>(
   }
 }
 
-function isEmptyArray(obj: any): boolean {
-  return Array.isArray(obj) && obj.length === 0
+/** Recursively visits each property in object
+ *  and returns true as soon as any field matches the passed
+ *  predicate, false otherwise.
+ */
+function exists<T>(
+  object: Record<string, any>,
+  predicate: (value: T) => boolean
+): boolean {
+  for (const key in object) {
+    const field = object[key]
+
+    if (field !== undefined && field.__type === 'Leaf') {
+      if (predicate(field)) {
+        return true
+      }
+    } else if (exists(field, predicate)) {
+      return true
+    }
+  }
+
+  return false
+}
+
+function isEmptyObject(obj: any): boolean {
+  return (
+    obj === undefined ||
+    obj === null ||
+    obj === '' ||
+    (Array.isArray(obj) && obj.length === 0)
+  )
 }
