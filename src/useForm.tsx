@@ -41,7 +41,7 @@ export function useForm<T extends Record<string, any>>(
   }, [state])
 
   const getValue = useCallback(() => {
-    return produce(state, (t) => {
+    return produce(state, t => {
       forEach<FieldState<any>>(state, (path, { value }) => {
         set(t, path, value)
       })
@@ -52,7 +52,7 @@ export function useForm<T extends Record<string, any>>(
 }
 
 function getInitialState<T>(fieldDefs: FieldDefinitions<T>): FieldsState<T> {
-  return produce(fieldDefs, (initialState) => {
+  return produce(fieldDefs, initialState => {
     forEach<FieldDefinition<any>>(
       fieldDefs,
       (path, { rules, default: value, __type }) => {
@@ -66,7 +66,7 @@ function createFields<T>(
   state: FieldsState<T>,
   setState: (state: FieldsState<T>) => void
 ): Fields<T> {
-  return (produce(state, (fields) => {
+  return (produce(state, fields => {
     forEach<FieldState<any>>(
       state,
       (path, { value, error, touched, rules }) => {
@@ -75,17 +75,15 @@ function createFields<T>(
           error,
           touched,
           onChange: (updatedValue: any) => {
-            const updatedState = produce(state, (updatedState) => {
+            const updatedState = produce(state, updatedState => {
               set(updatedState, [...path, 'value'], updatedValue)
               set(updatedState, [...path, 'touched'], true)
             })
             setState(updatedState)
           },
           onBlur: () => {
-            const updatedState = produce(state, (updatedState) => {
-              const error = rules
-                .map((r) => r(value))
-                .find((_) => _ !== undefined)
+            const updatedState = produce(state, updatedState => {
+              const error = rules.map(r => r(value)).find(_ => _ !== undefined)
               set(updatedState, [...path, 'error'], error)
             })
             setState(updatedState)
@@ -101,10 +99,10 @@ function runValidation<T>(
   setState: (state: FieldsState<T>) => void
 ): boolean {
   let isValid = true
-  const updatedState = produce(state, (updatedState) => {
+  const updatedState = produce(state, updatedState => {
     forEach(state, (path, field) => {
       const { rules, value } = (field as unknown) as FieldState<T>
-      const error = rules.map((r) => r(value)).find((_) => _ !== undefined)
+      const error = rules.map(r => r(value)).find(_ => _ !== undefined)
       set(updatedState, [...path, 'error'], error)
       if (error) {
         isValid = false
