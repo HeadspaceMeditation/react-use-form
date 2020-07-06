@@ -64,7 +64,7 @@ function getInitialState<T>(fieldDefs: FieldDefinitions<T>): FieldsState<T> {
 
 function createFields<T>(
   state: FieldsState<T>,
-  setState: (state: FieldsState<T>) => void
+  setState: (f: (state: FieldsState<T>) => FieldsState<T>) => void
 ): Fields<T> {
   return (produce(state, fields => {
     forEach<FieldState<any>>(
@@ -74,19 +74,28 @@ function createFields<T>(
           value,
           error,
           touched,
+          // For onChange / onBlur, we use a "functional" setState call
+          // (https://reactjs.org/docs/hooks-reference.html#functional-updates)
+          // This avoids issues related to stale state when multiple onChange functions are
+          // invoked within the same render cycle -- e.g.
+          // const onClick = () => { date.day.onChange(...); date.day.onChange(...) }:
           onChange: (updatedValue: any) => {
-            const updatedState = produce(state, updatedState => {
-              set(updatedState, [...path, 'value'], updatedValue)
-              set(updatedState, [...path, 'touched'], true)
-            })
-            setState(updatedState)
+            setState(currentState =>
+              produce(currentState, updatedState => {
+                set(updatedState, [...path, 'value'], updatedValue)
+                set(updatedState, [...path, 'touched'], true)
+              })
+            )
           },
           onBlur: () => {
-            const updatedState = produce(state, updatedState => {
-              const error = rules.map(r => r(value)).find(_ => _ !== undefined)
-              set(updatedState, [...path, 'error'], error)
-            })
-            setState(updatedState)
+            setState(currentState =>
+              produce(currentState, updatedState => {
+                const error = rules
+                  .map(r => r(value))
+                  .find(_ => _ !== undefined)
+                set(updatedState, [...path, 'error'], error)
+              })
+            )
           }
         })
       }

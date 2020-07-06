@@ -166,17 +166,8 @@ describe('useForm', () => {
 
     act(() => {
       result.current.fields.name.onChange('Widget A')
-    })
-
-    act(() => {
       result.current.fields.components.onChange([])
-    })
-
-    act(() => {
       result.current.fields.details.description.onChange('Description')
-    })
-
-    act(() => {
       result.current.fields.details.picture.onChange('Picture')
     })
 
