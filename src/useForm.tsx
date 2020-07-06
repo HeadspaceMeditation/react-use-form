@@ -13,6 +13,7 @@ export type UseForm<T> = {
   fields: Fields<T> // field bindings
   validate: () => boolean // trigger validation
   getValue: () => T // retrieve the current form value
+  isEmpty: boolean // true if all fields are undefined, null or ""
 }
 
 export function useForm<T extends Record<string, any>>(
@@ -23,6 +24,22 @@ export function useForm<T extends Record<string, any>>(
   const fields = useMemo(() => createFields(state, setState), [state])
   const validate = useCallback(() => runValidation(state, setState), [state])
 
+  const isEmpty = useMemo(() => {
+    let isEmpty = true
+    forEach<FieldsState<T>>(state, (_, { value }: any) => {
+      if (
+        value !== undefined &&
+        value !== null &&
+        value !== '' &&
+        !isEmptyArray(value)
+      ) {
+        isEmpty = false
+      }
+    })
+
+    return isEmpty
+  }, [state])
+
   const getValue = useCallback(() => {
     return produce(state, t => {
       forEach<FieldState<any>>(state, (path, { value }) => {
@@ -31,7 +48,7 @@ export function useForm<T extends Record<string, any>>(
     }) as T
   }, [state])
 
-  return { getValue, validate, fields }
+  return { getValue, validate, fields, isEmpty }
 }
 
 function getInitialState<T>(fieldDefs: FieldDefinitions<T>): FieldsState<T> {
@@ -116,4 +133,8 @@ function forEach<T>(
       forEach(field, f as any, currentPath)
     }
   }
+}
+
+function isEmptyArray(obj: any): boolean {
+  return Array.isArray(obj) && obj.length === 0
 }

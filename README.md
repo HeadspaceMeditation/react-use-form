@@ -118,3 +118,7 @@ Triggers the validation rules for _all_ properties (use this if you want validat
 ### getValue: () => T
 
 Returns your fully formed object. Make sure it's valid first either by disabling your submit button when fields have errors or calling `validate()`, before trying to use it.
+
+### isEmpty: boolean
+
+This value is `true` if all fields of `T` are either: `undefined | null | "" | [] (empty array)`, `false` otherwise. And this value is kept up to date across renders.

@@ -35,6 +35,51 @@ describe('useForm', () => {
     expect(fields.components.value).toEqual(undefined)
   })
 
+  it('should set isEmpty to true when all fields undefined', () => {
+    const { result } = render<Widget>({
+      name: field(),
+      components: field(),
+      details: {
+        description: field(),
+        picture: field()
+      }
+    })
+
+    const { isEmpty } = result.current
+    expect(isEmpty).toEqual(true)
+  })
+
+  it('should set isEmpty to true when fields contain the empty string or null', () => {
+    const { result } = render<Widget>({
+      name: field({ default: '' }),
+      components: field<Component[]>({ default: [] }),
+      details: {
+        description: field({ default: null } as any),
+        picture: field()
+      }
+    })
+
+    const { isEmpty } = result.current
+    expect(isEmpty).toEqual(true)
+  })
+
+  it('should set isEmpty to false when fields contain a value', () => {
+    const { result } = render<Widget>({
+      name: field(),
+      components: field(),
+      details: {
+        description: field(),
+        picture: field()
+      }
+    })
+
+    act(() => {
+      result.current.fields.name.onChange('Widget A')
+    })
+
+    expect(result.current.isEmpty).toEqual(false)
+  })
+
   it('should require every field by default', async () => {
     const { result } = render<Widget>({
       name: field(),
