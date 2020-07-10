@@ -180,6 +180,32 @@ describe('useForm', () => {
     expect(fields.details.picture.value).toEqual(expectedWidget.details.picture)
     expect(getValue()).toEqual(expectedWidget)
   })
+
+  it('should say form is invalid if it was valid but is no longer', async () => {
+    const { result } = render<Widget>({
+      name: field(),
+      details: {
+        description: field(),
+        picture: field()
+      },
+      components: field()
+    })
+
+    act(() => {
+      result.current.fields.name.onChange('Widget A')
+      result.current.fields.components.onChange([])
+      result.current.fields.details.description.onChange('Description')
+      result.current.fields.details.picture.onChange('Picture')
+    })
+
+    expect(result.current.validate()).toEqual(true)
+
+    act(() => {
+      result.current.fields.name.onChange('')
+    })
+
+    expect(result.current.validate()).toEqual(false)
+  })
 })
 
 function render<T>(
