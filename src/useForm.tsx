@@ -22,7 +22,7 @@ export function useForm<T extends Record<string, any>>(
   const initialState = useMemo(() => getInitialState(fieldDefs), [fieldDefs])
   const [state, setState] = useState<FieldsState<T>>(initialState)
   const fields = useMemo(() => createFields(state, setState), [state])
-  const validate = useCallback(() => runValidation(state, setState), [state])
+  const validate = useCallback(() => runValidation(setState), [state])
 
   const isEmpty = useMemo(() => {
     const hasValue = exists<FieldsState<T>>(
@@ -97,22 +97,23 @@ function createFields<T>(
 }
 
 function runValidation<T>(
-  state: FieldsState<T>,
-  setState: (state: FieldsState<T>) => void
+  setState: (f: (state: FieldsState<T>) => FieldsState<T>) => void
 ): boolean {
   let isValid = true
-  const updatedState = produce(state, updatedState => {
-    forEach(state, (path, field) => {
-      const { rules, value } = (field as unknown) as FieldState<T>
-      const error = rules.map(r => r(value)).find(_ => _ !== undefined)
-      set(updatedState, [...path, 'error'], error)
-      if (error) {
-        isValid = false
-      }
+  setState(state => {
+    const updatedState = produce(state, updatedState => {
+      forEach(state, (path, field) => {
+        const { rules, value } = (field as unknown) as FieldState<T>
+        const error = rules.map(r => r(value)).find(_ => _ !== undefined)
+        set(updatedState, [...path, 'error'], error)
+        if (error) {
+          isValid = false
+        }
+      })
     })
-  })
 
-  setState(updatedState)
+    return updatedState
+  })
   return isValid
 }
 
