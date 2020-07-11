@@ -145,6 +145,64 @@ describe('useForm', () => {
     expect(fields.components.value).toEqual([])
   })
 
+  it('should allow passing a fully formed T as a default', () => {
+    const existingWidget: Widget = {
+      name: 'Widget',
+      components: [{ id: 'component-1' }],
+      details: {
+        description: 'Description',
+        picture: 'Picture'
+      }
+    }
+
+    const { result } = render<Widget>(
+      {
+        name: field(),
+        components: field(),
+        details: {
+          description: field(),
+          picture: field()
+        }
+      },
+      existingWidget
+    )
+
+    const { fields } = result.current
+    expect(fields.name.value).toEqual('Widget')
+    expect(fields.details.description.value).toEqual('Description')
+    expect(fields.details.picture.value).toEqual('Picture')
+    expect(fields.components.value).toEqual([{ id: 'component-1' }])
+  })
+
+  it('should have field-level defaults supersede full object default', () => {
+    const existingWidget: Widget = {
+      name: 'Widget',
+      components: [{ id: 'component-1' }],
+      details: {
+        description: 'Description',
+        picture: 'Picture'
+      }
+    }
+
+    const { result } = render<Widget>(
+      {
+        name: field({ default: 'Supersede!' }),
+        components: field(),
+        details: {
+          description: field(),
+          picture: field()
+        }
+      },
+      existingWidget
+    )
+
+    const { fields } = result.current
+    expect(fields.name.value).toEqual('Supersede!')
+    expect(fields.details.description.value).toEqual('Description')
+    expect(fields.details.picture.value).toEqual('Picture')
+    expect(fields.components.value).toEqual([{ id: 'component-1' }])
+  })
+
   it('should change the value and extract the full value', async () => {
     const { result } = render<Widget>({
       name: field(),
@@ -209,7 +267,8 @@ describe('useForm', () => {
 })
 
 function render<T>(
-  fieldDefs: FieldDefinitions<T>
+  fieldDefs: FieldDefinitions<T>,
+  defaultValue?: T
 ): RenderHookResult<unknown, UseForm<T>> {
-  return renderHook(() => useForm(fieldDefs))
+  return renderHook(() => useForm(fieldDefs, defaultValue))
 }

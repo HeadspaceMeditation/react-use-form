@@ -1,5 +1,6 @@
 import produce from 'immer'
 import set from 'lodash.set'
+import get from 'lodash.get'
 import { useCallback, useMemo, useState } from 'react'
 import {
   FieldDefinition,
@@ -17,9 +18,13 @@ export type UseForm<T> = {
 }
 
 export function useForm<T extends Record<string, any>>(
-  fieldDefs: FieldDefinitions<T>
+  fieldDefs: FieldDefinitions<T>,
+  defaultValue?: T
 ): UseForm<T> {
-  const initialState = useMemo(() => getInitialState(fieldDefs), [fieldDefs])
+  const initialState = useMemo(() => getInitialState(fieldDefs, defaultValue), [
+    fieldDefs,
+    defaultValue
+  ])
   const [state, setState] = useState<FieldsState<T>>(initialState)
   const fields = useMemo(() => createFields(state, setState), [state])
   const validate = useCallback(() => runValidation(setState), [state])
@@ -44,11 +49,15 @@ export function useForm<T extends Record<string, any>>(
   return { getValue, validate, fields, isEmpty }
 }
 
-function getInitialState<T>(fieldDefs: FieldDefinitions<T>): FieldsState<T> {
+function getInitialState<T>(
+  fieldDefs: FieldDefinitions<T>,
+  defaultValue?: T
+): FieldsState<T> {
   return produce(fieldDefs, initialState => {
     forEach<FieldDefinition<any>>(
       fieldDefs,
-      (path, { rules, default: value, __type }) => {
+      (path, { rules, default: defaultFieldValue, __type }) => {
+        const value = defaultFieldValue || get(defaultValue, path)
         set(initialState, path, { rules, value, __type })
       }
     )

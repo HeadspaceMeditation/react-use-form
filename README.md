@@ -89,11 +89,39 @@ function NumberField(props: { label: string; field: Field<number> }) {
 }
 ```
 
-## API
+## Hook API
 
-### fields
+```TypeScript
 
-A recursive mirror of your object, where each field is a `Field<T>` with the following properities:
+type UseForm<T> = {
+  fields: Fields<T> // field bindings
+  validate: () => boolean // trigger validation
+  getValue: () => T // retrieve the current form value
+  isEmpty: boolean // true if all fields are undefined, null or ""
+}
+
+function useForm<T>(fieldDefinitions: FieldDefinitions<T>, defaultValue?: T): UseForm<T>
+```
+
+### fields: Fields<T>
+
+A recursive mirror of your object, where each field is a `Field<T>`.
+
+### validate: () => boolean
+
+Triggers the validation rules for _all_ properties (use this if you want validation errors to show up _after_ the user clicks your submit button vs right away with `onBlur`).
+
+### getValue: () => T
+
+Returns your fully formed object. Make sure it's valid first either by disabling your submit button when fields have errors or calling `validate()`, before trying to use it.
+
+### isEmpty: boolean
+
+This value is `true` if all fields of `T` are either: `undefined | null | "" | [] (empty array)`, `false` otherwise. And this value is kept up to date across renders.
+
+## Field<T> API
+
+A `Field<T>` represents the state for a specific field on your object, with the following properties:
 
 #### value: T
 
@@ -111,14 +139,19 @@ The first error triggered by your validation rules or `undefined`
 
 The `onBlur` handler for this property. Calling this triggers the validation rules for this property and triggers a re-render.
 
-### validate: () => boolean
+## Default Values
 
-Triggers the validation rules for _all_ properties (use this if you want validation errors to show up _after_ the user clicks your submit button vs right away with `onBlur`).
+There are two ways to specify a default value:
 
-### getValue: () => T
+1. Pass a fully formed `T` as the second parameter to `useForm`, e.g. `useForm({...}, defaultValue)`.
+   This is useful when you have an existing object from your API and you want to "edit" it in your form.
 
-Returns your fully formed object. Make sure it's valid first either by disabling your submit button when fields have errors or calling `validate()`, before trying to use it.
+2. Pass a default value for a specific field, using the `field` helper method -- e.g:
 
-### isEmpty: boolean
+```TypeScript
+useForm({
+  name: field({ default: "foo" })
+})
+```
 
-This value is `true` if all fields of `T` are either: `undefined | null | "" | [] (empty array)`, `false` otherwise. And this value is kept up to date across renders.
+Note: Field-level defaults override top-level defaults.
