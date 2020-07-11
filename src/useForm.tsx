@@ -27,7 +27,7 @@ export function useForm<T extends Record<string, any>>(
   ])
   const [state, setState] = useState<FieldsState<T>>(initialState)
   const fields = useMemo(() => createFields(state, setState), [state])
-  const validate = useCallback(() => runValidation(setState), [state])
+  const validate = useCallback(() => runValidation(setState), [setState])
 
   const isEmpty = useMemo(() => {
     const hasValue = exists<FieldsState<T>>(
