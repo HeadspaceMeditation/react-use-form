@@ -15,6 +15,7 @@ export type UseForm<T> = {
   validate: () => boolean // trigger validation
   getValue: () => T // retrieve the current form value
   isEmpty: boolean // true if all fields are undefined, null or ""
+  reset: () => void
 }
 
 export function useForm<T extends Record<string, any>>(
@@ -26,8 +27,11 @@ export function useForm<T extends Record<string, any>>(
     defaultValue
   ])
   const [state, setState] = useState<FieldsState<T>>(initialState)
-  const fields = useMemo(() => createFields(state, setState), [state])
+  const fields = useMemo(() => createFields(state, initialState, setState), [
+    state
+  ])
   const validate = useCallback(() => runValidation(setState), [setState])
+  const reset = useCallback(() => resetForm(initialState, setState), [setState])
 
   const isEmpty = useMemo(() => {
     const hasValue = exists<FieldsState<T>>(
@@ -46,7 +50,7 @@ export function useForm<T extends Record<string, any>>(
     }) as T
   }, [state])
 
-  return { getValue, validate, fields, isEmpty }
+  return { getValue, validate, fields, isEmpty, reset }
 }
 
 function getInitialState<T>(
@@ -66,6 +70,7 @@ function getInitialState<T>(
 
 function createFields<T>(
   state: FieldsState<T>,
+  initialState: FieldsState<T>,
   setState: (f: (state: FieldsState<T>) => FieldsState<T>) => void
 ): Fields<T> {
   return (produce(state, fields => {
@@ -86,6 +91,16 @@ function createFields<T>(
               produce(currentState, updatedState => {
                 set(updatedState, [...path, 'value'], updatedValue)
                 set(updatedState, [...path, 'touched'], true)
+              })
+            )
+          },
+          reset: () => {
+            setState(currentState =>
+              produce(currentState, updatedState => {
+                const value = get(initialState, [...path, 'value'])
+                set(updatedState, [...path, 'value'], value)
+                set(updatedState, [...path, 'error'], undefined)
+                set(updatedState, [...path, 'touched'], false)
               })
             )
           },
@@ -126,6 +141,22 @@ function runValidation<T>(
   return isValid
 }
 
+function resetForm<T>(
+  initialState: FieldsState<T>,
+  setState: (f: (state: FieldsState<T>) => FieldsState<T>) => void
+) {
+  setState(() => {
+    return produce(initialState, updatedState => {
+      forEach(initialState, (path, field) => {
+        const { value } = (field as unknown) as FieldState<T>
+        set(updatedState, [...path, 'value'], value)
+        set(updatedState, [...path, 'error'], undefined)
+        set(updatedState, [...path, 'touched'], false)
+      })
+    })
+  })
+}
+
 /** Recursively calls f() for each property in object
  *  This methohd assumes "leaf" properties have been tagged with
  *  __type: "Leaf"
@@ -155,6 +186,7 @@ function exists<T>(
   object: Record<string, any>,
   predicate: (value: T) => boolean
 ): boolean {
+  // console.log("=> ", object)
   for (const key in object) {
     const field = object[key]
 

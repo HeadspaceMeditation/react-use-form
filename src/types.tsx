@@ -8,6 +8,7 @@ export type Field<T> = {
   error?: string
   rules: ValidationRule<T>[]
   onChange: (value: T) => void
+  reset: () => void
   onBlur: () => void
 }
 
