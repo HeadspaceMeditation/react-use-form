@@ -186,7 +186,6 @@ function exists<T>(
   object: Record<string, any>,
   predicate: (value: T) => boolean
 ): boolean {
-  // console.log("=> ", object)
   for (const key in object) {
     const field = object[key]
 
