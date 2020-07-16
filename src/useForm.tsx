@@ -28,10 +28,14 @@ export function useForm<T extends Record<string, any>>(
   ])
   const [state, setState] = useState<FieldsState<T>>(initialState)
   const fields = useMemo(() => createFields(state, initialState, setState), [
-    state
+    state,
+    initialState
   ])
   const validate = useCallback(() => runValidation(setState), [setState])
-  const reset = useCallback(() => resetForm(initialState, setState), [setState])
+  const reset = useCallback(() => resetForm(initialState, setState), [
+    setState,
+    initialState
+  ])
 
   const isEmpty = useMemo(() => {
     const hasValue = exists<FieldsState<T>>(
@@ -144,7 +148,7 @@ function runValidation<T>(
 function resetForm<T>(
   initialState: FieldsState<T>,
   setState: (f: (state: FieldsState<T>) => FieldsState<T>) => void
-) {
+): void {
   setState(() => {
     return produce(initialState, updatedState => {
       forEach(initialState, (path, field) => {

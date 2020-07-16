@@ -275,7 +275,6 @@ describe('useForm', () => {
       components: field()
     })
 
-    // update field value
     act(() => {
       result.current.fields.name.onChange('Widget A')
     })
@@ -283,7 +282,6 @@ describe('useForm', () => {
     expect(result.current.fields.name.value).toEqual('Widget A')
     expect(result.current.fields.name.touched).toEqual(true)
 
-    // reset field value
     act(() => {
       result.current.fields.name.reset()
     })
@@ -302,21 +300,18 @@ describe('useForm', () => {
       components: field()
     })
 
-    // update field value
     act(() => {
       result.current.fields.name.onChange('Widget A')
     })
 
     expect(result.current.fields.name.value).toEqual('Widget A')
 
-    // trigger validation error
     act(() => {
       result.current.fields.name.onChange('')
       result.current.validate()
     })
     expect(result.current.fields.name.error).toBeDefined()
 
-    // reset field value
     act(() => {
       result.current.fields.name.reset()
     })
