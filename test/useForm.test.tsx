@@ -264,6 +264,105 @@ describe('useForm', () => {
 
     expect(result.current.validate()).toEqual(false)
   })
+
+  it('should reset field value to default', async () => {
+    const { result } = render<Widget>({
+      name: field(),
+      details: {
+        description: field(),
+        picture: field()
+      },
+      components: field()
+    })
+
+    act(() => {
+      result.current.fields.name.onChange('Widget A')
+    })
+
+    expect(result.current.fields.name.value).toEqual('Widget A')
+    expect(result.current.fields.name.touched).toEqual(true)
+
+    act(() => {
+      result.current.fields.name.reset()
+    })
+
+    expect(result.current.fields.name.value).toEqual(undefined)
+    expect(result.current.fields.name.touched).toEqual(false)
+  })
+
+  it('should reset field error to undefined', () => {
+    const { result } = render<Widget>({
+      name: field(),
+      details: {
+        description: field(),
+        picture: field()
+      },
+      components: field()
+    })
+
+    act(() => {
+      result.current.fields.name.onChange('Widget A')
+    })
+
+    expect(result.current.fields.name.value).toEqual('Widget A')
+
+    act(() => {
+      result.current.fields.name.onChange('')
+      result.current.validate()
+    })
+    expect(result.current.fields.name.error).toBeDefined()
+
+    act(() => {
+      result.current.fields.name.reset()
+    })
+
+    expect(result.current.fields.name.error).toBeUndefined()
+  })
+
+  it('should allow resetting form to default', () => {
+    const existingWidget: Widget = {
+      name: 'Widget',
+      components: [{ id: 'component-1' }],
+      details: {
+        description: 'Description',
+        picture: 'Picture'
+      }
+    }
+
+    const { result } = render<Widget>(
+      {
+        name: field(),
+        components: field(),
+        details: {
+          description: field(),
+          picture: field()
+        }
+      },
+      existingWidget
+    )
+
+    act(() => {
+      result.current.fields.name.onChange('Updated Widget')
+      result.current.fields.details.description.onChange('Updated Description')
+    })
+
+    expect(result.current.fields.name.value).toEqual('Updated Widget')
+    expect(result.current.fields.name.touched).toEqual(true)
+    expect(result.current.fields.details.description.value).toEqual(
+      'Updated Description'
+    )
+    expect(result.current.fields.details.description.touched).toEqual(true)
+
+    act(() => {
+      result.current.reset()
+    })
+    expect(result.current.fields.name.value).toEqual('Widget')
+    expect(result.current.fields.name.touched).toEqual(false)
+    expect(result.current.fields.details.description.value).toEqual(
+      'Description'
+    )
+    expect(result.current.fields.details.description.touched).toEqual(false)
+  })
 })
 
 function render<T>(
