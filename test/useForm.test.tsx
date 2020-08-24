@@ -92,8 +92,8 @@ describe('useForm', () => {
 
     const { validate } = result.current
     let isValid = undefined
-    act(() => {
-      isValid = validate()
+    await act(async () => {
+      isValid = await validate()
     })
 
     const { fields } = result.current
@@ -116,8 +116,8 @@ describe('useForm', () => {
 
     const { validate } = result.current
     let isValid = undefined
-    act(() => {
-      isValid = validate()
+    await act(async () => {
+      isValid = await validate()
     })
 
     const { fields } = result.current
@@ -249,20 +249,24 @@ describe('useForm', () => {
       components: field()
     })
 
-    act(() => {
+    let firstValidation: boolean | undefined = undefined
+    await act(async () => {
       result.current.fields.name.onChange('Widget A')
       result.current.fields.components.onChange([])
       result.current.fields.details.description.onChange('Description')
       result.current.fields.details.picture.onChange('Picture')
+      firstValidation = await result.current.validate()
     })
 
-    expect(result.current.validate()).toEqual(true)
+    expect(firstValidation).toEqual(true)
 
-    act(() => {
+    let secondValidation: boolean | undefined = undefined
+    await act(async () => {
       result.current.fields.name.onChange('')
+      secondValidation = await result.current.validate()
     })
 
-    expect(result.current.validate()).toEqual(false)
+    expect(secondValidation).toEqual(false)
   })
 
   it('should reset field value to default', async () => {

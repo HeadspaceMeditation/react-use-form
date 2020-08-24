@@ -12,7 +12,7 @@ import {
 
 export type UseForm<T> = {
   fields: Fields<T> // field bindings
-  validate: () => boolean // trigger validation
+  validate: () => Promise<boolean> // trigger validation
   getValue: () => T // retrieve the current form value
   isEmpty: boolean // true if all fields are undefined, null or ""
   reset: () => void
@@ -126,23 +126,25 @@ function createFields<T>(
 
 function runValidation<T>(
   setState: (f: (state: FieldsState<T>) => FieldsState<T>) => void
-): boolean {
-  let isValid = true
-  setState(state => {
-    const updatedState = produce(state, updatedState => {
-      forEach(state, (path, field) => {
-        const { rules, value } = (field as unknown) as FieldState<T>
-        const error = rules.map(r => r(value)).find(_ => _ !== undefined)
-        set(updatedState, [...path, 'error'], error)
-        if (error) {
-          isValid = false
-        }
+): Promise<boolean> {
+  return new Promise(resolve => {
+    setState(state => {
+      let isValid = true
+      const updatedState = produce(state, updatedState => {
+        forEach(state, (path, field) => {
+          const { rules, value } = (field as unknown) as FieldState<T>
+          const error = rules.map(r => r(value)).find(_ => _ !== undefined)
+          set(updatedState, [...path, 'error'], error)
+          if (error) {
+            isValid = false
+          }
+        })
       })
-    })
 
-    return updatedState
+      resolve(isValid)
+      return updatedState
+    })
   })
-  return isValid
 }
 
 function resetForm<T>(
