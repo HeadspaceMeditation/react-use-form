@@ -41,8 +41,8 @@ function PersonForm(props: {}) {
     }
   })
 
-  const onSubmit = () => {
-    if (validate()) { // trigger validation
+  const onSubmit = async () => {
+    if (await validate()) { // trigger validation
       console.log(getValue()) // get your fully-formed Person
     }
   }
@@ -107,7 +107,7 @@ function useForm<T>(fieldDefinitions: FieldDefinitions<T>, defaultValue?: T): Us
 
 A recursive mirror of your object, where each field is a `Field<T>`.
 
-### validate: () => boolean
+### validate: () => Promise<boolean>
 
 Triggers the validation rules for _all_ properties (use this if you want validation errors to show up _after_ the user clicks your submit button vs right away with `onBlur`).
 
