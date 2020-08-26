@@ -85,12 +85,12 @@ function createFields<T>(
           value,
           error,
           touched,
-          // For onChange / onBlur, we use a "functional" setState call
+          // For setValue / validate, we use a "functional" setState call
           // (https://reactjs.org/docs/hooks-reference.html#functional-updates)
-          // This avoids issues related to stale state when multiple onChange functions are
+          // This avoids issues related to stale state when multiple setValue functions are
           // invoked within the same render cycle -- e.g.
-          // const onClick = () => { date.day.onChange(...); date.day.onChange(...) }:
-          onChange: (updatedValue: any) => {
+          // const onClick = () => { date.day.setValue(...); date.day.setValue(...) }:
+          setValue: (updatedValue: any) => {
             setState(currentState =>
               produce(currentState, updatedState => {
                 set(updatedState, [...path, 'value'], updatedValue)
@@ -108,7 +108,7 @@ function createFields<T>(
               })
             )
           },
-          onBlur: () => {
+          validate: () => {
             setState(currentState =>
               produce(currentState, updatedState => {
                 const error = rules

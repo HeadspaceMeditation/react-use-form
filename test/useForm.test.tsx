@@ -74,7 +74,7 @@ describe('useForm', () => {
     })
 
     act(() => {
-      result.current.fields.name.onChange('Widget A')
+      result.current.fields.name.setValue('Widget A')
     })
 
     expect(result.current.isEmpty).toEqual(false)
@@ -223,10 +223,10 @@ describe('useForm', () => {
     }
 
     act(() => {
-      result.current.fields.name.onChange('Widget A')
-      result.current.fields.components.onChange([])
-      result.current.fields.details.description.onChange('Description')
-      result.current.fields.details.picture.onChange('Picture')
+      result.current.fields.name.setValue('Widget A')
+      result.current.fields.components.setValue([])
+      result.current.fields.details.description.setValue('Description')
+      result.current.fields.details.picture.setValue('Picture')
     })
 
     const { fields, getValue } = result.current
@@ -251,10 +251,10 @@ describe('useForm', () => {
 
     let firstValidation: boolean | undefined = undefined
     await act(async () => {
-      result.current.fields.name.onChange('Widget A')
-      result.current.fields.components.onChange([])
-      result.current.fields.details.description.onChange('Description')
-      result.current.fields.details.picture.onChange('Picture')
+      result.current.fields.name.setValue('Widget A')
+      result.current.fields.components.setValue([])
+      result.current.fields.details.description.setValue('Description')
+      result.current.fields.details.picture.setValue('Picture')
       firstValidation = await result.current.validate()
     })
 
@@ -262,7 +262,7 @@ describe('useForm', () => {
 
     let secondValidation: boolean | undefined = undefined
     await act(async () => {
-      result.current.fields.name.onChange('')
+      result.current.fields.name.setValue('')
       secondValidation = await result.current.validate()
     })
 
@@ -280,7 +280,7 @@ describe('useForm', () => {
     })
 
     act(() => {
-      result.current.fields.name.onChange('Widget A')
+      result.current.fields.name.setValue('Widget A')
     })
 
     expect(result.current.fields.name.value).toEqual('Widget A')
@@ -305,13 +305,13 @@ describe('useForm', () => {
     })
 
     act(() => {
-      result.current.fields.name.onChange('Widget A')
+      result.current.fields.name.setValue('Widget A')
     })
 
     expect(result.current.fields.name.value).toEqual('Widget A')
 
     act(() => {
-      result.current.fields.name.onChange('')
+      result.current.fields.name.setValue('')
       result.current.validate()
     })
     expect(result.current.fields.name.error).toBeDefined()
@@ -346,8 +346,8 @@ describe('useForm', () => {
     )
 
     act(() => {
-      result.current.fields.name.onChange('Updated Widget')
-      result.current.fields.details.description.onChange('Updated Description')
+      result.current.fields.name.setValue('Updated Widget')
+      result.current.fields.details.description.setValue('Updated Description')
     })
 
     expect(result.current.fields.name.value).toEqual('Updated Widget')

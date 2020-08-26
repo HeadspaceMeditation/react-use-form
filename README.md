@@ -4,7 +4,7 @@ React `useForm` is a custom [hook](https://reactjs.org/docs/hooks-intro.html) th
 
 In React, you often need to extract form data and map it to the shape that your backend API expects -- e.g. a graphQL type. This can quickly get complicated when your object contains nested types (e.g. `person.address.street`). The `useForm` hook makes this easy.
 
-Just specify your object's shape + validation rules and `useForm` gives you a `fields` object with properties that recursively mirror your object (e.g. `person.address.street.value`, `person.address.street.error`, `person.address.street.onChange` etc). You bind those to input components of your choice (e.g. `<TextField field={person.address.street} />`) Then, when the user clicks your "submit" button, simply call `getValue()` to get your fully-formed object out -- no manual data mapping required.
+Just specify your object's shape + validation rules and `useForm` gives you a `fields` object with properties that recursively mirror your object (e.g. `person.address.street.value`, `person.address.street.error`, `person.address.street.setValue` etc). You bind those to input components of your choice (e.g. `<TextField field={person.address.street} />`) Then, when the user clicks your "submit" button, simply call `getValue()` to get your fully-formed object out -- no manual data mapping required.
 
 ## Installation
 
@@ -66,7 +66,7 @@ function TextField(props: { label: string; field: Field<string> }) {
       <input
         type="text"
         value={field.value}
-        onChange={e => field.onChange(e.target.value)}
+        onChange={e => field.setValue(e.target.value)}
       />
       <p>{field.error}</p>
     </>
@@ -81,7 +81,7 @@ function NumberField(props: { label: string; field: Field<number> }) {
       <input
         type="number"
         value={field.value}
-        onChange={e => field.onChange(parseInt(e.target.value))}
+        onChange={e => field.setValue(parseInt(e.target.value))}
       />
       <p>{field.error}</p>
     </>
@@ -109,7 +109,7 @@ A recursive mirror of your object, where each field is a `Field<T>`.
 
 ### validate: () => Promise<boolean>
 
-Triggers the validation rules for _all_ properties (use this if you want validation errors to show up _after_ the user clicks your submit button vs right away with `onBlur`).
+Triggers the validation rules for _all_ properties (use this if you want validation errors to show up _after_ the user clicks your submit button vs right away with `fields.foo.validate`).
 
 ### getValue: () => T
 
@@ -127,17 +127,17 @@ A `Field<T>` represents the state for a specific field on your object, with the 
 
 The current value of this property (changes across renders)
 
-#### onChange<T>(input: T) => void
+#### setValue<T>(input: T) => void
 
-The `onChange` handler for this property. Passing a new value triggers a re-render of your form.
+The `setValue` handler for this property. Passing a new value triggers a re-render of your form.
 
 #### error: string | undefined
 
 The first error triggered by your validation rules or `undefined`
 
-#### onBlur: () => void
+#### validate: () => void
 
-The `onBlur` handler for this property. Calling this triggers the validation rules for this property and triggers a re-render.
+The `validate` handler for this property. Calling this triggers the validation rules for this property and triggers a re-render.
 
 ## Default Values
 

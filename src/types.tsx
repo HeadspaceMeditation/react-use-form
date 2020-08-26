@@ -7,9 +7,9 @@ export type Field<T> = {
   touched: boolean
   error?: string
   rules: ValidationRule<T>[]
-  onChange: (value: T) => void
+  setValue: (value: T) => void
   reset: () => void
-  onBlur: () => void
+  validate: () => void
 }
 
 export type FieldState<T> = {
