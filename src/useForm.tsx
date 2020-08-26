@@ -1,13 +1,17 @@
 import produce from 'immer'
-import set from 'lodash.set'
 import get from 'lodash.get'
+import set from 'lodash.set'
 import { useCallback, useMemo, useState } from 'react'
+import { ValidationRule } from './rules'
 import {
+  EmptySetValueOptions,
   FieldDefinition,
   FieldDefinitions,
   Fields,
   FieldsState,
-  FieldState
+  FieldState,
+  SetValueOptions,
+  SetValueReturnType
 } from './types'
 
 export type UseForm<T> = {
@@ -90,13 +94,37 @@ function createFields<T>(
           // This avoids issues related to stale state when multiple setValue functions are
           // invoked within the same render cycle -- e.g.
           // const onClick = () => { date.day.setValue(...); date.day.setValue(...) }:
-          setValue: (updatedValue: any) => {
-            setState(currentState =>
-              produce(currentState, updatedState => {
-                set(updatedState, [...path, 'value'], updatedValue)
-                set(updatedState, [...path, 'touched'], true)
-              })
-            )
+          setValue: <
+            U extends
+              | SetValueOptions
+              | EmptySetValueOptions = EmptySetValueOptions
+          >(
+            updatedValue: any,
+            options: SetValueOptions | undefined = undefined
+          ): SetValueReturnType<U> => {
+            const isValid = new Promise<boolean>(resolve => {
+              setState(currentState =>
+                produce(currentState, updatedState => {
+                  set(updatedState, [...path, 'value'], updatedValue)
+                  set(updatedState, [...path, 'touched'], true)
+
+                  if (options?.runValidation) {
+                    const error = maybeGetFirstValidationError(
+                      updatedValue,
+                      rules
+                    )
+                    set(updatedState, [...path, 'error'], error)
+                    resolve(error === undefined)
+                  }
+                })
+              )
+            })
+
+            if (options?.runValidation) {
+              return isValid as SetValueReturnType<U>
+            } else {
+              return undefined as SetValueReturnType<U>
+            }
           },
           reset: () => {
             setState(currentState =>
@@ -111,10 +139,11 @@ function createFields<T>(
           validate: () => {
             setState(currentState =>
               produce(currentState, updatedState => {
-                const error = rules
-                  .map(r => r(value))
-                  .find(_ => _ !== undefined)
-                set(updatedState, [...path, 'error'], error)
+                set(
+                  updatedState,
+                  [...path, 'error'],
+                  maybeGetFirstValidationError(value, rules)
+                )
               })
             )
           }
@@ -145,6 +174,13 @@ function runValidation<T>(
       return updatedState
     })
   })
+}
+
+function maybeGetFirstValidationError<T>(
+  value: T,
+  rules: ValidationRule<T>[]
+): string | undefined {
+  return rules.map(r => r(value)).find(_ => _ !== undefined)
 }
 
 function resetForm<T>(

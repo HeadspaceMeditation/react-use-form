@@ -1,5 +1,6 @@
 import { act, renderHook, RenderHookResult } from '@testing-library/react-hooks'
 import { field, useForm, UseForm } from '../src/index'
+import { ValidationRule } from '../src/rules'
 import { FieldDefinitions } from '../src/types'
 
 type Widget = {
@@ -16,6 +17,9 @@ type Details = {
   description: string
   picture: string
 }
+
+const noInvalidName: ValidationRule<string> = name =>
+  name === 'InvalidName' ? "name can't be 'InvalidName'" : undefined
 
 describe('useForm', () => {
   it('should initialize every field as undefined by default', () => {
@@ -237,6 +241,64 @@ describe('useForm', () => {
     )
     expect(fields.details.picture.value).toEqual(expectedWidget.details.picture)
     expect(getValue()).toEqual(expectedWidget)
+  })
+
+  it('should run validation when runValidation passed to setValue', async () => {
+    const { result } = render<Widget>({
+      name: field({
+        rules: [noInvalidName]
+      }),
+      details: {
+        description: field(),
+        picture: field()
+      },
+      components: field()
+    })
+
+    act(() => {
+      result.current.fields.name.setValue('InvalidName', {
+        runValidation: true
+      })
+    })
+
+    const { fields } = result.current
+    expect(fields.name.value).toEqual('InvalidName')
+    expect(fields.name.error).toEqual("name can't be 'InvalidName'")
+  })
+
+  it('should return a Promise<boolean> when runValidation passed to setValue', async () => {
+    const { result } = render<Widget>({
+      name: field({
+        rules: [noInvalidName]
+      }),
+      details: {
+        description: field(),
+        picture: field()
+      },
+      components: field()
+    })
+
+    let firstValidation: Promise<boolean> | undefined = undefined
+    act(() => {
+      firstValidation = result.current.fields.name.setValue('InvalidName', {
+        runValidation: true
+      })
+    })
+
+    expect(await firstValidation).toEqual(false)
+    expect(result.current.fields.name.error).toEqual(
+      "name can't be 'InvalidName'"
+    )
+
+    let secondValidation: Promise<boolean> | undefined = undefined
+    act(() => {
+      secondValidation = result.current.fields.name.setValue('Valid Name', {
+        runValidation: true
+      })
+    })
+
+    expect(await secondValidation).toEqual(true)
+    expect(result.current.fields.name.error).toEqual(undefined)
   })
 
   it('should say form is invalid if it was valid but is no longer', async () => {

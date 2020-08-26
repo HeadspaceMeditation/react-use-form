@@ -127,9 +127,11 @@ A `Field<T>` represents the state for a specific field on your object, with the 
 
 The current value of this property (changes across renders)
 
-#### setValue<T>(input: T) => void
+#### setValue<T>(input: T, options?: { runValidation: boolean }) => Promise<boolean> | void
 
-The `setValue` handler for this property. Passing a new value triggers a re-render of your form.
+The `setValue` handler for this property. Passing a new value triggers a re-render of your form. Normally this function returns `void`.
+
+But if you want to update your field value _and_ run validation at the same time, you can pass `{ runValidation: true }`. And, when you do the TS type signature will automatically change to `Promise<boolean>`, which you can use to determine if your field passed validation or not.
 
 #### error: string | undefined
 
