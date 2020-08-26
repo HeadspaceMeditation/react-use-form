@@ -100,7 +100,7 @@ function createFields<T>(
               | EmptySetValueOptions = EmptySetValueOptions
           >(
             updatedValue: any,
-            options: SetValueOptions | undefined = undefined
+            options?: SetValueOptions
           ): SetValueReturnType<U> => {
             const isValid = new Promise<boolean>(resolve => {
               setState(currentState =>
