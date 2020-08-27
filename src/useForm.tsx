@@ -69,7 +69,10 @@ function getInitialState<T>(
     forEach<FieldDefinition<any>>(
       fieldDefs,
       (path, { rules, default: defaultFieldValue, __type }) => {
-        const value = defaultFieldValue || get(defaultValue, path)
+        const value =
+          defaultFieldValue !== undefined
+            ? defaultFieldValue
+            : defaultFieldValue || get(defaultValue, path)
         set(initialState, path, { rules, value, __type })
       }
     )
