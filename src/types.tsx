@@ -7,9 +7,27 @@ export type Field<T> = {
   touched: boolean
   error?: string
   rules: ValidationRule<T>[]
-  onChange: (value: T) => void
+  setValue: <
+    U extends SetValueOptions | EmptySetValueOptions = EmptySetValueOptions
+  >(
+    value: T,
+    options?: U
+  ) => SetValueReturnType<U>
   reset: () => void
-  onBlur: () => void
+  validate: () => void
+}
+
+/** The return type of the setValue function, which can vary based on the options passed in */
+export type SetValueReturnType<T> = T extends EmptySetValueOptions
+  ? void
+  : Promise<boolean>
+
+export type EmptySetValueOptions = {
+  __type: 'empty'
+}
+
+export type SetValueOptions = {
+  runValidation: boolean
 }
 
 export type FieldState<T> = {

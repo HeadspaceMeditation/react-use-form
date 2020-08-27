@@ -1,13 +1,17 @@
 import produce from 'immer'
-import set from 'lodash.set'
 import get from 'lodash.get'
+import set from 'lodash.set'
 import { useCallback, useMemo, useState } from 'react'
+import { ValidationRule } from './rules'
 import {
+  EmptySetValueOptions,
   FieldDefinition,
   FieldDefinitions,
   Fields,
   FieldsState,
-  FieldState
+  FieldState,
+  SetValueOptions,
+  SetValueReturnType
 } from './types'
 
 export type UseForm<T> = {
@@ -65,7 +69,10 @@ function getInitialState<T>(
     forEach<FieldDefinition<any>>(
       fieldDefs,
       (path, { rules, default: defaultFieldValue, __type }) => {
-        const value = defaultFieldValue || get(defaultValue, path)
+        const value =
+          defaultFieldValue !== undefined
+            ? defaultFieldValue
+            : defaultFieldValue || get(defaultValue, path)
         set(initialState, path, { rules, value, __type })
       }
     )
@@ -85,18 +92,42 @@ function createFields<T>(
           value,
           error,
           touched,
-          // For onChange / onBlur, we use a "functional" setState call
+          // For setValue / validate, we use a "functional" setState call
           // (https://reactjs.org/docs/hooks-reference.html#functional-updates)
-          // This avoids issues related to stale state when multiple onChange functions are
+          // This avoids issues related to stale state when multiple setValue functions are
           // invoked within the same render cycle -- e.g.
-          // const onClick = () => { date.day.onChange(...); date.day.onChange(...) }:
-          onChange: (updatedValue: any) => {
-            setState(currentState =>
-              produce(currentState, updatedState => {
-                set(updatedState, [...path, 'value'], updatedValue)
-                set(updatedState, [...path, 'touched'], true)
-              })
-            )
+          // const onClick = () => { date.day.setValue(...); date.day.setValue(...) }:
+          setValue: <
+            U extends
+              | SetValueOptions
+              | EmptySetValueOptions = EmptySetValueOptions
+          >(
+            updatedValue: any,
+            options?: SetValueOptions
+          ): SetValueReturnType<U> => {
+            const isValid = new Promise<boolean>(resolve => {
+              setState(currentState =>
+                produce(currentState, updatedState => {
+                  set(updatedState, [...path, 'value'], updatedValue)
+                  set(updatedState, [...path, 'touched'], true)
+
+                  if (options?.runValidation) {
+                    const error = maybeGetFirstValidationError(
+                      updatedValue,
+                      rules
+                    )
+                    set(updatedState, [...path, 'error'], error)
+                    resolve(error === undefined)
+                  }
+                })
+              )
+            })
+
+            if (options?.runValidation) {
+              return isValid as SetValueReturnType<U>
+            } else {
+              return undefined as SetValueReturnType<U>
+            }
           },
           reset: () => {
             setState(currentState =>
@@ -108,13 +139,14 @@ function createFields<T>(
               })
             )
           },
-          onBlur: () => {
+          validate: () => {
             setState(currentState =>
               produce(currentState, updatedState => {
-                const error = rules
-                  .map(r => r(value))
-                  .find(_ => _ !== undefined)
-                set(updatedState, [...path, 'error'], error)
+                set(
+                  updatedState,
+                  [...path, 'error'],
+                  maybeGetFirstValidationError(value, rules)
+                )
               })
             )
           }
@@ -145,6 +177,13 @@ function runValidation<T>(
       return updatedState
     })
   })
+}
+
+function maybeGetFirstValidationError<T>(
+  value: T,
+  rules: ValidationRule<T>[]
+): string | undefined {
+  return rules.map(r => r(value)).find(_ => _ !== undefined)
 }
 
 function resetForm<T>(

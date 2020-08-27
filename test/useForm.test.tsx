@@ -1,5 +1,6 @@
 import { act, renderHook, RenderHookResult } from '@testing-library/react-hooks'
 import { field, useForm, UseForm } from '../src/index'
+import { ValidationRule } from '../src/rules'
 import { FieldDefinitions } from '../src/types'
 
 type Widget = {
@@ -16,6 +17,9 @@ type Details = {
   description: string
   picture: string
 }
+
+const noInvalidName: ValidationRule<string> = name =>
+  name === 'InvalidName' ? "name can't be 'InvalidName'" : undefined
 
 describe('useForm', () => {
   it('should initialize every field as undefined by default', () => {
@@ -74,10 +78,26 @@ describe('useForm', () => {
     })
 
     act(() => {
-      result.current.fields.name.onChange('Widget A')
+      result.current.fields.name.setValue('Widget A')
     })
 
     expect(result.current.isEmpty).toEqual(false)
+  })
+
+  it('should allow false-y values as default values', () => {
+    type SomeType = {
+      name: string
+      isPresent: boolean
+    }
+
+    const { result } = render<SomeType>({
+      name: field({ default: '', rules: [] }), // empty strings are falsey in JS, e.g. "" || "foo" => "foo"
+      isPresent: field<boolean>({ default: false, rules: [] })
+    })
+
+    const { fields } = result.current
+    expect(fields.name.value).toEqual('')
+    expect(fields.isPresent.value).toEqual(false)
   })
 
   it('should require every field by default', async () => {
@@ -223,10 +243,10 @@ describe('useForm', () => {
     }
 
     act(() => {
-      result.current.fields.name.onChange('Widget A')
-      result.current.fields.components.onChange([])
-      result.current.fields.details.description.onChange('Description')
-      result.current.fields.details.picture.onChange('Picture')
+      result.current.fields.name.setValue('Widget A')
+      result.current.fields.components.setValue([])
+      result.current.fields.details.description.setValue('Description')
+      result.current.fields.details.picture.setValue('Picture')
     })
 
     const { fields, getValue } = result.current
@@ -237,6 +257,64 @@ describe('useForm', () => {
     )
     expect(fields.details.picture.value).toEqual(expectedWidget.details.picture)
     expect(getValue()).toEqual(expectedWidget)
+  })
+
+  it('should run validation when runValidation passed to setValue', async () => {
+    const { result } = render<Widget>({
+      name: field({
+        rules: [noInvalidName]
+      }),
+      details: {
+        description: field(),
+        picture: field()
+      },
+      components: field()
+    })
+
+    act(() => {
+      result.current.fields.name.setValue('InvalidName', {
+        runValidation: true
+      })
+    })
+
+    const { fields } = result.current
+    expect(fields.name.value).toEqual('InvalidName')
+    expect(fields.name.error).toEqual("name can't be 'InvalidName'")
+  })
+
+  it('should return a Promise<boolean> when runValidation passed to setValue', async () => {
+    const { result } = render<Widget>({
+      name: field({
+        rules: [noInvalidName]
+      }),
+      details: {
+        description: field(),
+        picture: field()
+      },
+      components: field()
+    })
+
+    let firstValidation: Promise<boolean> | undefined = undefined
+    act(() => {
+      firstValidation = result.current.fields.name.setValue('InvalidName', {
+        runValidation: true
+      })
+    })
+
+    expect(await firstValidation).toEqual(false)
+    expect(result.current.fields.name.error).toEqual(
+      "name can't be 'InvalidName'"
+    )
+
+    let secondValidation: Promise<boolean> | undefined = undefined
+    act(() => {
+      secondValidation = result.current.fields.name.setValue('Valid Name', {
+        runValidation: true
+      })
+    })
+
+    expect(await secondValidation).toEqual(true)
+    expect(result.current.fields.name.error).toEqual(undefined)
   })
 
   it('should say form is invalid if it was valid but is no longer', async () => {
@@ -251,10 +329,10 @@ describe('useForm', () => {
 
     let firstValidation: boolean | undefined = undefined
     await act(async () => {
-      result.current.fields.name.onChange('Widget A')
-      result.current.fields.components.onChange([])
-      result.current.fields.details.description.onChange('Description')
-      result.current.fields.details.picture.onChange('Picture')
+      result.current.fields.name.setValue('Widget A')
+      result.current.fields.components.setValue([])
+      result.current.fields.details.description.setValue('Description')
+      result.current.fields.details.picture.setValue('Picture')
       firstValidation = await result.current.validate()
     })
 
@@ -262,7 +340,7 @@ describe('useForm', () => {
 
     let secondValidation: boolean | undefined = undefined
     await act(async () => {
-      result.current.fields.name.onChange('')
+      result.current.fields.name.setValue('')
       secondValidation = await result.current.validate()
     })
 
@@ -280,7 +358,7 @@ describe('useForm', () => {
     })
 
     act(() => {
-      result.current.fields.name.onChange('Widget A')
+      result.current.fields.name.setValue('Widget A')
     })
 
     expect(result.current.fields.name.value).toEqual('Widget A')
@@ -305,13 +383,13 @@ describe('useForm', () => {
     })
 
     act(() => {
-      result.current.fields.name.onChange('Widget A')
+      result.current.fields.name.setValue('Widget A')
     })
 
     expect(result.current.fields.name.value).toEqual('Widget A')
 
     act(() => {
-      result.current.fields.name.onChange('')
+      result.current.fields.name.setValue('')
       result.current.validate()
     })
     expect(result.current.fields.name.error).toBeDefined()
@@ -346,8 +424,8 @@ describe('useForm', () => {
     )
 
     act(() => {
-      result.current.fields.name.onChange('Updated Widget')
-      result.current.fields.details.description.onChange('Updated Description')
+      result.current.fields.name.setValue('Updated Widget')
+      result.current.fields.details.description.setValue('Updated Description')
     })
 
     expect(result.current.fields.name.value).toEqual('Updated Widget')
