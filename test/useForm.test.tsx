@@ -84,6 +84,23 @@ describe('useForm', () => {
     expect(result.current.isEmpty).toEqual(false)
   })
 
+  it('should allow empty strings as default values', () => {
+    const { result } = render<Widget>({
+      name: field({ default: '' }),
+      components: field(),
+      details: {
+        description: field({ default: '' }),
+        picture: field({ default: '' })
+      }
+    })
+
+    const { fields } = result.current
+    expect(fields.name.value).toEqual('')
+    expect(fields.details.description.value).toEqual('')
+    expect(fields.details.picture.value).toEqual('')
+    expect(fields.components.value).toEqual(undefined)
+  })
+
   it('should require every field by default', async () => {
     const { result } = render<Widget>({
       name: field(),
