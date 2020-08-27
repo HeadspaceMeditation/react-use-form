@@ -84,21 +84,20 @@ describe('useForm', () => {
     expect(result.current.isEmpty).toEqual(false)
   })
 
-  it('should allow empty strings as default values', () => {
-    const { result } = render<Widget>({
-      name: field({ default: '' }),
-      components: field(),
-      details: {
-        description: field({ default: '' }),
-        picture: field({ default: '' })
-      }
+  it('should allow false-y values as default values', () => {
+    type SomeType = {
+      name: string
+      isPresent: boolean
+    }
+
+    const { result } = render<SomeType>({
+      name: field({ default: '', rules: [] }), // empty strings are falsey in JS, e.g. "" || "foo" => "foo"
+      isPresent: field<boolean>({ default: false, rules: [] })
     })
 
     const { fields } = result.current
     expect(fields.name.value).toEqual('')
-    expect(fields.details.description.value).toEqual('')
-    expect(fields.details.picture.value).toEqual('')
-    expect(fields.components.value).toEqual(undefined)
+    expect(fields.isPresent.value).toEqual(false)
   })
 
   it('should require every field by default', async () => {
