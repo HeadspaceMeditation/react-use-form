@@ -4,7 +4,7 @@ import { FieldDefinition } from './types'
 export function field<T>(
   props: {
     default?: T
-    rules?: ValidationRule<T>[]
+    rules?: ValidationRule<T, any>[]
   } = { rules: [required] }
 ): FieldDefinition<T> {
   return {

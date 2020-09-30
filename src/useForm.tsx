@@ -50,15 +50,9 @@ export function useForm<T extends Record<string, any>>(
     return !hasValue
   }, [state])
 
-  const getValue = useCallback(() => {
-    return produce(state, t => {
-      forEach<FieldState<any>>(state, (path, { value }) => {
-        set(t, path, value)
-      })
-    }) as T
-  }, [state])
+  const getValueCallback = useCallback(() => getValue(state), [state])
 
-  return { getValue, validate, fields, isEmpty, reset }
+  return { getValue: getValueCallback, validate, fields, isEmpty, reset }
 }
 
 function getInitialState<T>(
@@ -114,6 +108,7 @@ function createFields<T>(
                   if (options?.runValidation) {
                     const error = maybeGetFirstValidationError(
                       updatedValue,
+                      currentState,
                       rules
                     )
                     set(updatedState, [...path, 'error'], error)
@@ -145,7 +140,7 @@ function createFields<T>(
                 set(
                   updatedState,
                   [...path, 'error'],
-                  maybeGetFirstValidationError(value, rules)
+                  maybeGetFirstValidationError(value, currentState, rules)
                 )
               })
             )
@@ -162,10 +157,13 @@ function runValidation<T>(
   return new Promise(resolve => {
     setState(state => {
       let isValid = true
+      const stateValue = getValue(state)
       const updatedState = produce(state, updatedState => {
         forEach(state, (path, field) => {
           const { rules, value } = (field as unknown) as FieldState<T>
-          const error = rules.map(r => r(value)).find(_ => _ !== undefined)
+          const error = rules
+            .map(r => r(value, stateValue))
+            .find(_ => _ !== undefined)
           set(updatedState, [...path, 'error'], error)
           if (error) {
             isValid = false
@@ -179,11 +177,13 @@ function runValidation<T>(
   })
 }
 
-function maybeGetFirstValidationError<T>(
+function maybeGetFirstValidationError<T, S>(
   value: T,
-  rules: ValidationRule<T>[]
+  fieldsState: FieldsState<S>,
+  rules: ValidationRule<T, S>[]
 ): string | undefined {
-  return rules.map(r => r(value)).find(_ => _ !== undefined)
+  const stateValue = getValue(fieldsState)
+  return rules.map(r => r(value, stateValue)).find(_ => _ !== undefined)
 }
 
 function resetForm<T>(
@@ -253,4 +253,12 @@ function isEmptyObject(obj: any): boolean {
     obj === '' ||
     (Array.isArray(obj) && obj.length === 0)
   )
+}
+
+function getValue<T extends Record<string, any>>(state: FieldsState<T>): T {
+  return produce(state, t => {
+    forEach<FieldState<any>>(state, (path, { value }) => {
+      set(t, path, value)
+    })
+  }) as T
 }

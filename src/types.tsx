@@ -6,7 +6,7 @@ export type Field<T> = {
   value: T
   touched: boolean
   error?: string
-  rules: ValidationRule<T>[]
+  rules: ValidationRule<T, any>[]
   setValue: <
     U extends SetValueOptions | EmptySetValueOptions = EmptySetValueOptions
   >(
@@ -35,13 +35,13 @@ export type FieldState<T> = {
   value: T
   touched: boolean
   error?: string
-  rules: ValidationRule<T>[]
+  rules: ValidationRule<T, any>[]
 }
 
 export type FieldDefinition<T> = {
   __type: 'Leaf'
   default?: T
-  rules: ValidationRule<T>[]
+  rules: ValidationRule<T, any>[]
 }
 
 /** Field bindings for all the properties on T */

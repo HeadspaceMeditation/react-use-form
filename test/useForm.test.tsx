@@ -18,7 +18,7 @@ type Details = {
   picture: string
 }
 
-const noInvalidName: ValidationRule<string> = name =>
+const noInvalidName: ValidationRule<string, any> = name =>
   name === 'InvalidName' ? "name can't be 'InvalidName'" : undefined
 
 describe('useForm', () => {
@@ -444,6 +444,43 @@ describe('useForm', () => {
       'Description'
     )
     expect(result.current.fields.details.description.touched).toEqual(false)
+  })
+
+  it('should pass current state value in validation rule function', async () => {
+    const validator: ValidationRule<string, Widget> = (value, state) => {
+      if (state.details.description === 'PictureRequired' && !value) {
+        return 'Picture is required'
+      }
+      return
+    }
+
+    const { result } = render<Widget>(
+      {
+        name: field(),
+        components: field(),
+        details: {
+          description: field(),
+          picture: field({ rules: [validator] })
+        }
+      },
+      {
+        name: 'Name',
+        components: [],
+        details: {
+          description: 'PictureRequired',
+          picture: 'Blob'
+        }
+      }
+    )
+
+    act(() => {
+      result.current.fields.details.picture.setValue('', {
+        runValidation: true
+      })
+    })
+
+    const { fields } = result.current
+    expect(fields.details.picture.error).toEqual('Picture is required')
   })
 })
 
