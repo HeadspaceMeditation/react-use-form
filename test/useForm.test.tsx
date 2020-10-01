@@ -18,7 +18,7 @@ type Details = {
   picture: string
 }
 
-const noInvalidName: ValidationRule<string> = name =>
+const noInvalidName: ValidationRule<string, any> = name =>
   name === 'InvalidName' ? "name can't be 'InvalidName'" : undefined
 
 describe('useForm', () => {
@@ -447,9 +447,78 @@ describe('useForm', () => {
   })
 })
 
+describe('useForm validation rules', () => {
+  const pictureRequiresDescription: ValidationRule<string, Widget> = (
+    value,
+    state
+  ) => {
+    if (value && !state.details.description) {
+      return 'To upload a photo, you need to add a description'
+    }
+    return undefined
+  }
+
+  const fieldDefs: FieldDefinitions<Widget> = {
+    name: field(),
+    components: field(),
+    details: {
+      description: field(),
+      picture: field({ rules: [pictureRequiresDescription] })
+    }
+  }
+
+  it('should pass entire form state to validation rule and work on setValue', async () => {
+    const { result } = render<Widget>(
+      fieldDefs,
+      aWidget({
+        details: { description: null as any, picture: null as any }
+      })
+    )
+
+    act(() => {
+      result.current.fields.details.picture.setValue('bytes', {
+        runValidation: true
+      })
+    })
+
+    const { fields } = result.current
+    expect(fields.details.picture.error).toEqual(
+      'To upload a photo, you need to add a description'
+    )
+  })
+
+  it('should pass entire form state to validation rule and work on validate', async () => {
+    const { result } = render<Widget>(
+      fieldDefs,
+      aWidget({ details: { description: null as any, picture: 'bytes' } })
+    )
+
+    act(() => {
+      result.current.validate()
+    })
+
+    const { fields } = result.current
+    expect(fields.details.picture.error).toEqual(
+      'To upload a photo, you need to add a description'
+    )
+  })
+})
+
 function render<T>(
   fieldDefs: FieldDefinitions<T>,
   defaultValue?: T
 ): RenderHookResult<unknown, UseForm<T>> {
   return renderHook(() => useForm(fieldDefs, defaultValue))
+}
+
+function aWidget(partial: Partial<Widget>): Widget {
+  return {
+    name: 'Name',
+    components: [],
+    details: {
+      description: 'description',
+      picture: 'bytes'
+    },
+    ...partial
+  }
 }
