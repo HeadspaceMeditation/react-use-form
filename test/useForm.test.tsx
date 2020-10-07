@@ -258,9 +258,9 @@ describe('useForm', () => {
     expect(fields.components.value).toEqual([])
   })
 
-  it('should have field-level defaults supersede full object default', () => {
+  it('should have non-undefined field of fully formed T supersede field-level defaults', () => {
     const existingWidget: Widget = {
-      name: 'Widget',
+      name: 'Supersede!',
       components: [{ id: 'component-1' }],
       details: {
         description: 'Description',
@@ -270,7 +270,7 @@ describe('useForm', () => {
 
     const { result } = render<Widget>(
       {
-        name: field({ default: 'Supersede!' }),
+        name: field({ default: 'Widget default' }),
         components: field(),
         details: {
           description: field(),
