@@ -1,5 +1,13 @@
 import { act, renderHook, RenderHookResult } from '@testing-library/react-hooks'
-import { field, useForm, UseForm } from '../src/index'
+import {
+  arrayField,
+  booleanField,
+  field,
+  numberField,
+  stringField,
+  useForm,
+  UseForm
+} from '../src/index'
 import { ValidationRule } from '../src/rules'
 import { FieldDefinitions } from '../src/types'
 
@@ -37,6 +45,33 @@ describe('useForm', () => {
     expect(fields.details.description.value).toEqual(undefined)
     expect(fields.details.picture.value).toEqual(undefined)
     expect(fields.components.value).toEqual(undefined)
+  })
+
+  it('should initialize fields to specific defaults if specialized helpers used', () => {
+    type SpecificObject = {
+      stringField: string
+
+      booleanField: boolean
+      numberField: number
+      objectField: {
+        arrayField: number[]
+      }
+    }
+
+    const { result } = render<SpecificObject>({
+      stringField: stringField(),
+      booleanField: booleanField(),
+      numberField: numberField(),
+      objectField: {
+        arrayField: arrayField()
+      }
+    })
+
+    const { fields } = result.current
+    expect(fields.stringField.value).toEqual('')
+    expect(fields.booleanField.value).toEqual(false)
+    expect(fields.numberField.value).toEqual(0)
+    expect(fields.objectField.arrayField.value).toEqual([])
   })
 
   it('should set isEmpty to true when all fields undefined', () => {
