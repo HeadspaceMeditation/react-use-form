@@ -229,6 +229,35 @@ describe('useForm', () => {
     expect(fields.components.value).toEqual([{ id: 'component-1' }])
   })
 
+  it('non-undefined field-level defaults should supercede undefined fields on a fully formed T', () => {
+    const existingWidget: Widget = {
+      name: undefined as any,
+      components: undefined as any,
+      details: {
+        description: 'Description',
+        picture: 'Picture'
+      }
+    }
+
+    const { result } = render<Widget>(
+      {
+        name: stringField(),
+        components: arrayField(),
+        details: {
+          description: field(),
+          picture: field()
+        }
+      },
+      existingWidget
+    )
+
+    const { fields } = result.current
+    expect(fields.name.value).toEqual('')
+    expect(fields.details.description.value).toEqual('Description')
+    expect(fields.details.picture.value).toEqual('Picture')
+    expect(fields.components.value).toEqual([])
+  })
+
   it('should have field-level defaults supersede full object default', () => {
     const existingWidget: Widget = {
       name: 'Widget',
