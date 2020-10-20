@@ -98,6 +98,8 @@ type UseForm<T> = {
   validate: () => boolean // trigger validation
   getValue: () => T // retrieve the current form value
   isEmpty: boolean // true if all fields are undefined, null or ""
+  isTouched: boolean // true if any of the field-level `touched` is true
+  reset: () => void // reset form to initial state
 }
 
 function useForm<T>(fieldDefinitions: FieldDefinitions<T>, defaultValue?: T): UseForm<T>
@@ -118,6 +120,14 @@ Returns your fully formed object. Make sure it's valid first either by disabling
 ### isEmpty: boolean
 
 This value is `true` if all fields of `T` are either: `undefined | null | "" | [] (empty array)`, `false` otherwise. And this value is kept up to date across renders.
+
+### isTouched: boolean
+
+This value is `true` if at least of one field-level `touched` value is `true`.
+
+### reset: () => void
+
+Reset all fields to their initial state.
 
 ## Field<T> API
 
