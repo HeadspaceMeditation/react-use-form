@@ -512,7 +512,7 @@ describe('useForm', () => {
     expect(result.current.fields.details.description.touched).toEqual(false)
   })
 
-  it(`should set isDirty to false when fields haven't touched the form`, () => {
+  it(`should set isTouched to false when fields haven't touched the form`, () => {
     const { result } = render<Widget>({
       name: field({ default: 'Brown' }),
       components: field<Component[]>({ default: [] }),
@@ -522,11 +522,11 @@ describe('useForm', () => {
       }
     })
 
-    const { isDirty } = result.current
-    expect(isDirty).toEqual(false)
+    const { isTouched } = result.current
+    expect(isTouched).toEqual(false)
   })
 
-  it('should set isDirty to false when fields contain a value', () => {
+  it('should set isTouched to false when fields contain a value', () => {
     const { result } = render<Widget>({
       name: field(),
       components: field(),
@@ -540,7 +540,7 @@ describe('useForm', () => {
       result.current.fields.name.setValue('Widget A')
     })
 
-    expect(result.current.isDirty).toEqual(true)
+    expect(result.current.isTouched).toEqual(true)
   })
 })
 
