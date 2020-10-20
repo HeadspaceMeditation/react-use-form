@@ -19,6 +19,7 @@ export type UseForm<T> = {
   validate: () => Promise<boolean> // trigger validation
   getValue: () => T // retrieve the current form value
   isEmpty: boolean // true if all fields are undefined, null or ""
+  isTouched: boolean
   reset: () => void
 }
 
@@ -50,10 +51,20 @@ export function useForm<T extends Record<string, any>>(
     return !hasValue
   }, [state])
 
+  const isTouched = useMemo(() => {
+    let hasTouched = false
+    forEach(state, (_, field) => {
+      const { touched } = (field as unknown) as FieldState<T>
+      hasTouched = hasTouched || touched === true
+    })
+
+    return hasTouched
+  }, [state])
+
   const getValue = useCallback(() => extractValuesFromFieldsState(state), [
     state
   ])
-  return { getValue, validate, fields, isEmpty, reset }
+  return { getValue, validate, fields, isEmpty, reset, isTouched }
 }
 
 function getInitialState<T>(
