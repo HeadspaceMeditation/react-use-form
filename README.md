@@ -156,4 +156,6 @@ useForm({
 })
 ```
 
-Note: Field-level defaults override top-level defaults.
+Note: If you pass a fully formed object to seed your form values, those object's values will supersede
+any field-level default values you've specified. This is desireable for the intended usecase of loading
+a pre-existing entity/draft into your form.

@@ -75,10 +75,14 @@ function getInitialState<T>(
     forEach<FieldDefinition<any>>(
       fieldDefs,
       (path, { rules, default: defaultFieldValue, __type }) => {
-        const value =
-          defaultFieldValue !== undefined
-            ? defaultFieldValue
-            : defaultFieldValue || get(defaultValue, path)
+        // Our "preferredDefaultFieldValue" is the field value that comes in from
+        // an optionally passed full-object (T here). This allows callers to
+        // seed their form with a value pulled down from the network/local storage etc.
+
+        // If a full object is not passed, then we want to fall back to an individual field's
+        // default
+        const preferredDefaultFieldValue = get(defaultValue, path)
+        const value = preferredDefaultFieldValue ?? defaultFieldValue
         set(initialState, path, { rules, value, __type })
       }
     )
