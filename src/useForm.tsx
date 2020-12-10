@@ -13,6 +13,7 @@ import {
   SetValueOptions,
   SetValueReturnType
 } from './types'
+import { forEach } from './utils'
 
 export type UseForm<T> = {
   fields: Fields<T> // field bindings
@@ -218,27 +219,6 @@ function resetForm<T>(
       })
     })
   })
-}
-
-/** Recursively calls f() for each property in object
- *  This methohd assumes "leaf" properties have been tagged with
- *  __type: "Leaf"
- */
-function forEach<T>(
-  object: Record<string, any>,
-  f: (path: string[], value: T) => void,
-  path: string[] = []
-) {
-  for (const key in object) {
-    const field = object[key]
-    const currentPath = [...path, key]
-
-    if (field !== undefined && field.__type === 'Leaf') {
-      f(currentPath, field)
-    } else {
-      forEach(field, f as any, currentPath)
-    }
-  }
 }
 
 /** Recursively visits each property in object

@@ -10,21 +10,7 @@ import {
 } from '../src/index'
 import { ValidationRule } from '../src/rules'
 import { FieldDefinitions } from '../src/types'
-
-type Widget = {
-  name: string
-  details: Details
-  components: Component[]
-}
-
-type Component = {
-  id: string
-}
-
-type Details = {
-  description: string
-  picture: string
-}
+import { aWidget, Component, Widget } from './utils'
 
 const noInvalidName: ValidationRule<string, any> = name =>
   name === 'InvalidName' ? "name can't be 'InvalidName'" : undefined
@@ -606,16 +592,4 @@ function render<T>(
   defaultValue?: T
 ): RenderHookResult<unknown, UseForm<T>> {
   return renderHook(() => useForm(fieldDefs, defaultValue))
-}
-
-function aWidget(partial: Partial<Widget>): Widget {
-  return {
-    name: 'Name',
-    components: [],
-    details: {
-      description: 'description',
-      picture: 'bytes'
-    },
-    ...partial
-  }
 }
