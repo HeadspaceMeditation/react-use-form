@@ -21,7 +21,7 @@ const fieldDefs: FieldDefinitions<Widget> = {
 }
 
 describe('Helper function', () => {
-  it('should helper function to validate form data base on FieldDefinitions', () => {
+  it('should validate form data based on FieldDefinitions when provided with invalid input', () => {
     expect(
       validate(
         aWidget({ details: { description: null as any, picture: 'bytes' } }),
@@ -29,7 +29,8 @@ describe('Helper function', () => {
       )
     ).toBeFalsy()
     expect(validate(aWidget({ name: '' }), fieldDefs)).toBeFalsy()
-
+  })
+  it('should validate form data based on FieldDefinitions when provided with valid input', () => {
     expect(validate(aWidget(), fieldDefs)).toBeTruthy()
   })
 })
