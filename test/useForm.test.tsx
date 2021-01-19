@@ -3,6 +3,7 @@ import {
   arrayField,
   booleanField,
   field,
+  nonEmptyArrayField,
   numberField,
   stringField,
   useForm,
@@ -543,11 +544,11 @@ describe('useForm', () => {
     expect(result.current.isTouched).toEqual(true)
   })
 
-  it('should not allow empty array when arrayField is required', async () => {
+  it('should not allow empty array in nonEmptyArrayField by default', async () => {
     type SpecificObject = { arrayField: number[] }
 
     const { result } = render<SpecificObject>({
-      arrayField: arrayField()
+      arrayField: nonEmptyArrayField()
     })
 
     act(() => {

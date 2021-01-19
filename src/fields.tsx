@@ -33,5 +33,11 @@ export function numberField(
 }
 
 export function arrayField<T>(props?: FieldProps<T[]>): FieldDefinition<T[]> {
+  return field({ default: [], ...props })
+}
+
+export function nonEmptyArrayField<T>(
+  props?: FieldProps<T[]>
+): FieldDefinition<T[]> {
   return field({ default: [], rules: [required, nonEmpty], ...props })
 }
