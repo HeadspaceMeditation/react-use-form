@@ -1,4 +1,4 @@
-import { required, ValidationRule } from './rules'
+import { nonEmpty, required, ValidationRule } from './rules'
 import { FieldDefinition } from './types'
 
 export type FieldProps<T> = {
@@ -33,5 +33,5 @@ export function numberField(
 }
 
 export function arrayField<T>(props?: FieldProps<T[]>): FieldDefinition<T[]> {
-  return field({ default: [], ...props })
+  return field({ default: [], rules: [required, nonEmpty], ...props })
 }

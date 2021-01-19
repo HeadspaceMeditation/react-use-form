@@ -542,6 +542,32 @@ describe('useForm', () => {
 
     expect(result.current.isTouched).toEqual(true)
   })
+
+  it('should not allow empty array when arrayField is required', async () => {
+    type SpecificObject = { arrayField: number[] }
+
+    const { result } = render<SpecificObject>({
+      arrayField: arrayField()
+    })
+
+    act(() => {
+      result.current.fields.arrayField.setValue([1, 2, 3])
+    })
+
+    act(() => {
+      result.current.fields.arrayField.setValue([])
+    })
+
+    const { validate } = result.current
+    let isValid = undefined
+    await act(async () => {
+      isValid = await validate()
+    })
+
+    const { fields } = result.current
+    expect(isValid).toBeFalsy()
+    expect(fields.arrayField.error).toEqual("This field can't be empty.")
+  })
 })
 
 describe('useForm validation rules', () => {

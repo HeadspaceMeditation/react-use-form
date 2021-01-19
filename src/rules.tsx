@@ -13,3 +13,9 @@ export const required: ValidationRule<any, any> = (value, _) => {
     ? 'This field is required'
     : undefined
 }
+
+export const nonEmpty: ValidationRule<Array<any>, any> = input => {
+  return input === undefined || input.length === 0
+    ? "This field can't be empty."
+    : undefined
+}
