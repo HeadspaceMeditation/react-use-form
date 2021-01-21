@@ -178,24 +178,24 @@ React useForm provides a handful of convenience methods to construct fields for 
 
 A generic field whose default value is `undefined` (unless overridden by passing the `default:` parameter shown in the previous section). For cases where you want a default value that is not `undefined`, see the other helper methods below.
 
-#### stringField
+#### stringField()
 
 A string field whose default value is `""`.
 
 React input components often expect their "empty" state to be the empty string instead of `undefined`. In those cases, you'll want to use this helper over the more generic `field()` helper.
 
-#### booleanField
+#### booleanField()
 
 A boolean field whose default value is `false`.
 
-#### numberField
+#### numberField()
 
 A number field whose default value is `0`.
 
-#### arrayField
+#### arrayField()
 
 An array field whose default value is `[]`.
 
-#### nonEmptyArrayField
+#### nonEmptyArrayField()
 
 An array field whose default value is `[]`, but has a validation rule attached that shows an error if the array is empty when validation on this field is triggered.
