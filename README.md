@@ -176,7 +176,7 @@ React useForm provides a handful of convenience methods to construct fields for 
 
 #### field()
 
-A generic field whose default value is `undefined` (unless overridden by passing the `default:` parameter shown in the previous section). For cases where you want a default value that is not `undefined`, see the other helper methods below.
+A generic field whose default value is `undefined` (unless overridden by passing the `default:` parameter shown in the previous section). For cases where you want a default value that is not `undefined`, see the other helper methods below (or just pass the `default:` option).
 
 #### stringField()
 
