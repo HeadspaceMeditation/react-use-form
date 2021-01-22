@@ -1,6 +1,6 @@
 {
   "version": "0.3.3",
-  "license": "Apache 2.0",
+  "license": "Apache-2.0",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "files": [
@@ -36,7 +36,7 @@
   "author": "Ginger",
   "module": "dist/react-use-form.esm.js",
   "devDependencies": {
-    "@testing-library/react-hooks": "^3.3.0",
+    "@testing-library/react-hooks": "^5.0.2",
     "@types/jest": "^26.0.4",
     "@types/lodash.get": "^4.4.6",
     "@types/lodash.set": "^4.3.6",
@@ -45,13 +45,12 @@
     "husky": "^4.3.0",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
-    "react-test-renderer": "^16.13.1",
     "tsdx": "^0.14.0",
     "tslib": "^2.0.1",
     "typescript": "^4.0.3"
   },
   "dependencies": {
-    "immer": "^7.0.9",
+    "immer": "^8.0.1",
     "lodash.get": "^4.4.2",
     "lodash.set": "^4.3.2"
   }
