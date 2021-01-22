@@ -14,7 +14,7 @@ Just specify your object's shape + validation rules and `useForm` gives you a `f
 
 ```TSX
 import React from 'react'
-import { useForm, field, Field } from "@ginger.io/react-use-form"
+import { useForm, stringField, field, Field } from "@ginger.io/react-use-form"
 
 type Person = {
   name: string
@@ -29,10 +29,10 @@ type Address = {
 
 function PersonForm(props: {}) {
   const { fields, validate, getValue } = useForm<Person>({
-    name: field(),
-    phone: field(),
+    name: stringField(),
+    phone: stringField()
     address: {
-      street: field(),
+      street: stringField(),
       zip: field({
         rules: [
           zip => (zip.toString().length === 5 ? undefined : 'Invalid zip code')
@@ -169,3 +169,33 @@ useForm({
 Note: If you pass a fully formed object to seed your form values, those object's values will supersede
 any field-level default values you've specified. This is desireable for the intended usecase of loading
 a pre-existing entity/draft into your form.
+
+### Field helper functions
+
+React useForm provides a handful of convenience methods to construct fields for common default values:
+
+#### field()
+
+A generic field whose default value is `undefined` (unless overridden by passing the `default:` parameter shown in the previous section). For cases where you want a default value that is not `undefined`, see the other helper methods below (or just pass the `default:` option).
+
+#### stringField()
+
+A string field whose default value is `""`.
+
+React input components often expect their "empty" state to be the empty string instead of `undefined`. In those cases, you'll want to use this helper over the more generic `field()` helper.
+
+#### booleanField()
+
+A boolean field whose default value is `false`.
+
+#### numberField()
+
+A number field whose default value is `0`.
+
+#### arrayField()
+
+An array field whose default value is `[]`.
+
+#### nonEmptyArrayField()
+
+An array field whose default value is `[]`, but has a validation rule attached that shows an error if the array is empty when validation on this field is triggered.
