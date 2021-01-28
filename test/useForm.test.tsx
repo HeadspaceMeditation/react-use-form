@@ -18,19 +18,6 @@ import { aWidget, Component, Widget } from './utils'
 const noInvalidName: ValidationRule<string, any> = name =>
   name === 'InvalidName' ? "name can't be 'InvalidName'" : undefined
 
-function set<T>(field: Field<T>, value: T): void {
-  act(() => field.setValue(value))
-}
-
-async function validate<T>(currentForm: UseForm<T>): Promise<boolean> {
-  const { validate } = currentForm
-  let isValid: boolean = false
-  await act(async () => {
-    isValid = await validate()
-  })
-  return Promise.resolve(isValid)
-}
-
 describe('useForm', () => {
   it('should initialize every field as undefined by default', () => {
     const { result } = render<Widget>({
@@ -657,6 +644,19 @@ describe('useForm validation rules', () => {
     )
   })
 })
+
+function set<T>(field: Field<T>, value: T): void {
+  act(() => field.setValue(value))
+}
+
+async function validate<T>(currentForm: UseForm<T>): Promise<boolean> {
+  const { validate } = currentForm
+  let isValid: boolean = false
+  await act(async () => {
+    isValid = await validate()
+  })
+  return Promise.resolve(isValid)
+}
 
 function render<T>(
   fieldDefs: FieldDefinitions<T>,
