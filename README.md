@@ -192,6 +192,14 @@ A boolean field whose default value is `false`.
 
 A number field whose default value is `0`.
 
+#### positiveNumberField()
+
+A number field whose default value is `1` and requires positive numbers.
+
+#### nonNegativeNumberField()
+
+A number field whose default value is `0` and requires non-negative numbers (0 and higher).
+
 #### arrayField()
 
 An array field whose default value is `[]`.

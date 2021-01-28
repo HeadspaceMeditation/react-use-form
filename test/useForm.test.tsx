@@ -6,6 +6,8 @@ import {
   nonEmptyArrayField,
   numberField,
   stringField,
+  positiveNumberField,
+  nonNegativeNumberField,
   useForm,
   UseForm
 } from '../src/index'
@@ -113,7 +115,7 @@ describe('useForm', () => {
     }
 
     const { result } = render<SomeType>({
-      name: field({ default: '', rules: [] }), // empty strings are falsey in JS, e.g. "" || "foo" => "foo"
+      name: field({ default: '', rules: [] }), // empty strings are falsy in JS, e.g. "" || "foo" => "foo"
       isPresent: field<boolean>({ default: false, rules: [] })
     })
 
@@ -245,7 +247,7 @@ describe('useForm', () => {
     expect(fields.components.value).toEqual([])
   })
 
-  // This behavior is desireable to allow callers to seed form values from
+  // This behavior is desirable to allow callers to seed form values from
   // an object retrieved from the network / local storage etc.
   it('should have full object default supersede field-level defaults', () => {
     const existingWidget: Widget = {
@@ -554,6 +556,88 @@ describe('useForm', () => {
     const { fields } = result.current
     expect(isValid).toBeFalsy()
     expect(fields.arrayField.error).toEqual("This field can't be empty.")
+  })
+
+  it('should not allow zero for positiveNumber rule by default', async () => {
+    type SpecificObject = { positiveNumber: number }
+
+    const { result } = render<SpecificObject>({
+      positiveNumber: positiveNumberField()
+    })
+
+    act(() => {
+      result.current.fields.positiveNumber.setValue(2)
+    })
+
+    act(() => {
+      result.current.fields.positiveNumber.setValue(0)
+    })
+
+    const { validate } = result.current
+    let isValid = undefined
+    await act(async () => {
+      isValid = await validate()
+    })
+
+    const { fields } = result.current
+    expect(isValid).toBeFalsy()
+    expect(fields.positiveNumber.error).toEqual(
+      'This field needs to be greater than zero.'
+    )
+  })
+
+  it('should allow 0 for nonNegative rule by default', async () => {
+    type SpecificObject = { nonNegativeNumber: number }
+
+    const { result } = render<SpecificObject>({
+      nonNegativeNumber: nonNegativeNumberField()
+    })
+
+    act(() => {
+      result.current.fields.nonNegativeNumber.setValue(2)
+    })
+
+    act(() => {
+      result.current.fields.nonNegativeNumber.setValue(0)
+    })
+
+    const { validate } = result.current
+    let isValid = undefined
+    await act(async () => {
+      isValid = await validate()
+    })
+
+    const { fields } = result.current
+    expect(isValid).toBeTruthy()
+    expect(fields.nonNegativeNumber.error).toEqual(undefined)
+  })
+
+  it('should not allow -1 for nonNegative rule by default', async () => {
+    type SpecificObject = { nonNegativeNumber: number }
+
+    const { result } = render<SpecificObject>({
+      nonNegativeNumber: nonNegativeNumberField()
+    })
+
+    act(() => {
+      result.current.fields.nonNegativeNumber.setValue(2)
+    })
+
+    act(() => {
+      result.current.fields.nonNegativeNumber.setValue(-1)
+    })
+
+    const { validate } = result.current
+    let isValid = undefined
+    await act(async () => {
+      isValid = await validate()
+    })
+
+    const { fields } = result.current
+    expect(isValid).toBeFalsy()
+    expect(fields.nonNegativeNumber.error).toEqual(
+      'This field needs to be greater than or equal to zero.'
+    )
   })
 })
 
