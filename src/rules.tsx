@@ -22,12 +22,12 @@ export const nonEmpty: ValidationRule<Array<any>, any> = input => {
 
 export const positiveNumber: ValidationRule<number, any> = value => {
   return value === undefined || value === null || value <= 0
-    ? 'This field needs to be greater than zero.'
+    ? 'This field must be greater than zero.'
     : undefined
 }
 
 export const nonNegativeNumber: ValidationRule<number, any> = value => {
   return value === undefined || value === null || value < 0
-    ? 'This field needs to be greater than or equal to zero.'
+    ? 'This field must be greater than or equal to zero.'
     : undefined
 }

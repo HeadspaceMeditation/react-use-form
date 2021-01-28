@@ -12,11 +12,24 @@ import {
   UseForm
 } from '../src/index'
 import { ValidationRule } from '../src/rules'
-import { FieldDefinitions } from '../src/types'
+import { FieldDefinitions, Field } from '../src/types'
 import { aWidget, Component, Widget } from './utils'
 
 const noInvalidName: ValidationRule<string, any> = name =>
   name === 'InvalidName' ? "name can't be 'InvalidName'" : undefined
+
+function set<T>(field: Field<T>, value: T): void {
+  act(() => field.setValue(value))
+}
+
+async function validate<T>(currentForm: UseForm<T>): Promise<boolean> {
+  const { validate } = currentForm
+  let isValid: boolean = false
+  await act(async () => {
+    isValid = await validate()
+  })
+  return Promise.resolve(isValid)
+}
 
 describe('useForm', () => {
   it('should initialize every field as undefined by default', () => {
@@ -101,9 +114,7 @@ describe('useForm', () => {
       }
     })
 
-    act(() => {
-      result.current.fields.name.setValue('Widget A')
-    })
+    set(result.current.fields.name, 'Widget A')
 
     expect(result.current.isEmpty).toEqual(false)
   })
@@ -134,11 +145,7 @@ describe('useForm', () => {
       }
     })
 
-    const { validate } = result.current
-    let isValid = undefined
-    await act(async () => {
-      isValid = await validate()
-    })
+    const isValid = await validate(result.current)
 
     const { fields } = result.current
     expect(isValid).toEqual(false)
@@ -158,11 +165,7 @@ describe('useForm', () => {
       }
     })
 
-    const { validate } = result.current
-    let isValid = undefined
-    await act(async () => {
-      isValid = await validate()
-    })
+    const isValid = await validate(result.current)
 
     const { fields } = result.current
     expect(isValid).toEqual(false)
@@ -297,12 +300,10 @@ describe('useForm', () => {
       }
     }
 
-    act(() => {
-      result.current.fields.name.setValue('Widget A')
-      result.current.fields.components.setValue([])
-      result.current.fields.details.description.setValue('Description')
-      result.current.fields.details.picture.setValue('Picture')
-    })
+    set(result.current.fields.name, 'Widget A')
+    set(result.current.fields.components, [])
+    set(result.current.fields.details.description, 'Description')
+    set(result.current.fields.details.picture, 'Picture')
 
     const { fields, getValue } = result.current
     expect(fields.name.value).toEqual(expectedWidget.name)
@@ -427,7 +428,7 @@ describe('useForm', () => {
     expect(result.current.fields.name.touched).toEqual(false)
   })
 
-  it('should reset field error to undefined', () => {
+  it('should reset field error to undefined', async () => {
     const { result } = render<Widget>({
       name: field(),
       details: {
@@ -437,16 +438,11 @@ describe('useForm', () => {
       components: field()
     })
 
-    act(() => {
-      result.current.fields.name.setValue('Widget A')
-    })
-
+    set(result.current.fields.name, 'Widget A')
     expect(result.current.fields.name.value).toEqual('Widget A')
 
-    act(() => {
-      result.current.fields.name.setValue('')
-      result.current.validate()
-    })
+    set(result.current.fields.name, '')
+    await validate(result.current)
     expect(result.current.fields.name.error).toBeDefined()
 
     act(() => {
@@ -478,10 +474,8 @@ describe('useForm', () => {
       existingWidget
     )
 
-    act(() => {
-      result.current.fields.name.setValue('Updated Widget')
-      result.current.fields.details.description.setValue('Updated Description')
-    })
+    set(result.current.fields.name, 'Updated Widget')
+    set(result.current.fields.details.description, 'Updated Description')
 
     expect(result.current.fields.name.value).toEqual('Updated Widget')
     expect(result.current.fields.name.touched).toEqual(true)
@@ -525,9 +519,7 @@ describe('useForm', () => {
       }
     })
 
-    act(() => {
-      result.current.fields.name.setValue('Widget A')
-    })
+    set(result.current.fields.name, 'Widget A')
 
     expect(result.current.isTouched).toEqual(true)
   })
@@ -539,19 +531,10 @@ describe('useForm', () => {
       arrayField: nonEmptyArrayField()
     })
 
-    act(() => {
-      result.current.fields.arrayField.setValue([1, 2, 3])
-    })
+    set(result.current.fields.arrayField, [1, 2, 3])
+    set(result.current.fields.arrayField, [])
 
-    act(() => {
-      result.current.fields.arrayField.setValue([])
-    })
-
-    const { validate } = result.current
-    let isValid = undefined
-    await act(async () => {
-      isValid = await validate()
-    })
+    const isValid = await validate(result.current)
 
     const { fields } = result.current
     expect(isValid).toBeFalsy()
@@ -560,83 +543,62 @@ describe('useForm', () => {
 
   it('should not allow zero for positiveNumber rule by default', async () => {
     type SpecificObject = { positiveNumber: number }
+    let isValid
 
     const { result } = render<SpecificObject>({
       positiveNumber: positiveNumberField()
     })
 
-    act(() => {
-      result.current.fields.positiveNumber.setValue(2)
-    })
+    set(result.current.fields.positiveNumber, 2)
+    isValid = await validate(result.current)
+    expect(isValid).toBeTruthy()
+    expect(result.current.fields.positiveNumber.error).toBeUndefined()
 
-    act(() => {
-      result.current.fields.positiveNumber.setValue(0)
-    })
-
-    const { validate } = result.current
-    let isValid = undefined
-    await act(async () => {
-      isValid = await validate()
-    })
-
-    const { fields } = result.current
+    set(result.current.fields.positiveNumber, 0)
+    isValid = await validate(result.current)
     expect(isValid).toBeFalsy()
-    expect(fields.positiveNumber.error).toEqual(
-      'This field needs to be greater than zero.'
+    expect(result.current.fields.positiveNumber.error).toEqual(
+      'This field must be greater than zero.'
     )
   })
 
   it('should allow 0 for nonNegative rule by default', async () => {
     type SpecificObject = { nonNegativeNumber: number }
+    let isValid
 
     const { result } = render<SpecificObject>({
       nonNegativeNumber: nonNegativeNumberField()
     })
 
-    act(() => {
-      result.current.fields.nonNegativeNumber.setValue(2)
-    })
-
-    act(() => {
-      result.current.fields.nonNegativeNumber.setValue(0)
-    })
-
-    const { validate } = result.current
-    let isValid = undefined
-    await act(async () => {
-      isValid = await validate()
-    })
-
-    const { fields } = result.current
+    set(result.current.fields.nonNegativeNumber, 2)
+    isValid = await validate(result.current)
     expect(isValid).toBeTruthy()
-    expect(fields.nonNegativeNumber.error).toEqual(undefined)
+    expect(result.current.fields.nonNegativeNumber.error).toBeUndefined()
+
+    set(result.current.fields.nonNegativeNumber, 0)
+    isValid = await validate(result.current)
+    expect(isValid).toBeTruthy()
+    expect(result.current.fields.nonNegativeNumber.error).toBeUndefined()
   })
 
   it('should not allow -1 for nonNegative rule by default', async () => {
     type SpecificObject = { nonNegativeNumber: number }
+    let isValid
 
     const { result } = render<SpecificObject>({
       nonNegativeNumber: nonNegativeNumberField()
     })
 
-    act(() => {
-      result.current.fields.nonNegativeNumber.setValue(2)
-    })
+    set(result.current.fields.nonNegativeNumber, 2)
+    isValid = await validate(result.current)
+    expect(isValid).toBeTruthy()
+    expect(result.current.fields.nonNegativeNumber.error).toBeUndefined()
 
-    act(() => {
-      result.current.fields.nonNegativeNumber.setValue(-1)
-    })
-
-    const { validate } = result.current
-    let isValid = undefined
-    await act(async () => {
-      isValid = await validate()
-    })
-
-    const { fields } = result.current
+    set(result.current.fields.nonNegativeNumber, -1)
+    isValid = await validate(result.current)
     expect(isValid).toBeFalsy()
-    expect(fields.nonNegativeNumber.error).toEqual(
-      'This field needs to be greater than or equal to zero.'
+    expect(result.current.fields.nonNegativeNumber.error).toEqual(
+      'This field must be greater than or equal to zero.'
     )
   })
 })
@@ -687,9 +649,7 @@ describe('useForm validation rules', () => {
       aWidget({ details: { description: null as any, picture: 'bytes' } })
     )
 
-    act(() => {
-      result.current.validate()
-    })
+    await validate(result.current)
 
     const { fields } = result.current
     expect(fields.details.picture.error).toEqual(
