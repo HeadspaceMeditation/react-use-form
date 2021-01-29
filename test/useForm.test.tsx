@@ -6,11 +6,13 @@ import {
   nonEmptyArrayField,
   numberField,
   stringField,
+  positiveNumberField,
+  nonNegativeNumberField,
   useForm,
   UseForm
 } from '../src/index'
 import { ValidationRule } from '../src/rules'
-import { FieldDefinitions } from '../src/types'
+import { FieldDefinitions, Field } from '../src/types'
 import { aWidget, Component, Widget } from './utils'
 
 const noInvalidName: ValidationRule<string, any> = name =>
@@ -99,9 +101,7 @@ describe('useForm', () => {
       }
     })
 
-    act(() => {
-      result.current.fields.name.setValue('Widget A')
-    })
+    set(result.current.fields.name, 'Widget A')
 
     expect(result.current.isEmpty).toEqual(false)
   })
@@ -113,7 +113,7 @@ describe('useForm', () => {
     }
 
     const { result } = render<SomeType>({
-      name: field({ default: '', rules: [] }), // empty strings are falsey in JS, e.g. "" || "foo" => "foo"
+      name: field({ default: '', rules: [] }), // empty strings are falsy in JS, e.g. "" || "foo" => "foo"
       isPresent: field<boolean>({ default: false, rules: [] })
     })
 
@@ -132,11 +132,7 @@ describe('useForm', () => {
       }
     })
 
-    const { validate } = result.current
-    let isValid = undefined
-    await act(async () => {
-      isValid = await validate()
-    })
+    const isValid = await validate(result.current)
 
     const { fields } = result.current
     expect(isValid).toEqual(false)
@@ -156,11 +152,7 @@ describe('useForm', () => {
       }
     })
 
-    const { validate } = result.current
-    let isValid = undefined
-    await act(async () => {
-      isValid = await validate()
-    })
+    const isValid = await validate(result.current)
 
     const { fields } = result.current
     expect(isValid).toEqual(false)
@@ -245,7 +237,7 @@ describe('useForm', () => {
     expect(fields.components.value).toEqual([])
   })
 
-  // This behavior is desireable to allow callers to seed form values from
+  // This behavior is desirable to allow callers to seed form values from
   // an object retrieved from the network / local storage etc.
   it('should have full object default supersede field-level defaults', () => {
     const existingWidget: Widget = {
@@ -295,12 +287,10 @@ describe('useForm', () => {
       }
     }
 
-    act(() => {
-      result.current.fields.name.setValue('Widget A')
-      result.current.fields.components.setValue([])
-      result.current.fields.details.description.setValue('Description')
-      result.current.fields.details.picture.setValue('Picture')
-    })
+    set(result.current.fields.name, 'Widget A')
+    set(result.current.fields.components, [])
+    set(result.current.fields.details.description, 'Description')
+    set(result.current.fields.details.picture, 'Picture')
 
     const { fields, getValue } = result.current
     expect(fields.name.value).toEqual(expectedWidget.name)
@@ -425,7 +415,7 @@ describe('useForm', () => {
     expect(result.current.fields.name.touched).toEqual(false)
   })
 
-  it('should reset field error to undefined', () => {
+  it('should reset field error to undefined', async () => {
     const { result } = render<Widget>({
       name: field(),
       details: {
@@ -435,16 +425,11 @@ describe('useForm', () => {
       components: field()
     })
 
-    act(() => {
-      result.current.fields.name.setValue('Widget A')
-    })
-
+    set(result.current.fields.name, 'Widget A')
     expect(result.current.fields.name.value).toEqual('Widget A')
 
-    act(() => {
-      result.current.fields.name.setValue('')
-      result.current.validate()
-    })
+    set(result.current.fields.name, '')
+    await validate(result.current)
     expect(result.current.fields.name.error).toBeDefined()
 
     act(() => {
@@ -476,10 +461,8 @@ describe('useForm', () => {
       existingWidget
     )
 
-    act(() => {
-      result.current.fields.name.setValue('Updated Widget')
-      result.current.fields.details.description.setValue('Updated Description')
-    })
+    set(result.current.fields.name, 'Updated Widget')
+    set(result.current.fields.details.description, 'Updated Description')
 
     expect(result.current.fields.name.value).toEqual('Updated Widget')
     expect(result.current.fields.name.touched).toEqual(true)
@@ -523,9 +506,7 @@ describe('useForm', () => {
       }
     })
 
-    act(() => {
-      result.current.fields.name.setValue('Widget A')
-    })
+    set(result.current.fields.name, 'Widget A')
 
     expect(result.current.isTouched).toEqual(true)
   })
@@ -537,23 +518,75 @@ describe('useForm', () => {
       arrayField: nonEmptyArrayField()
     })
 
-    act(() => {
-      result.current.fields.arrayField.setValue([1, 2, 3])
-    })
+    set(result.current.fields.arrayField, [1, 2, 3])
+    set(result.current.fields.arrayField, [])
 
-    act(() => {
-      result.current.fields.arrayField.setValue([])
-    })
-
-    const { validate } = result.current
-    let isValid = undefined
-    await act(async () => {
-      isValid = await validate()
-    })
+    const isValid = await validate(result.current)
 
     const { fields } = result.current
     expect(isValid).toBeFalsy()
     expect(fields.arrayField.error).toEqual("This field can't be empty.")
+  })
+
+  it('should not allow zero for positiveNumber rule by default', async () => {
+    type SpecificObject = { positiveNumber: number }
+    let isValid
+
+    const { result } = render<SpecificObject>({
+      positiveNumber: positiveNumberField()
+    })
+
+    set(result.current.fields.positiveNumber, 2)
+    isValid = await validate(result.current)
+    expect(isValid).toBeTruthy()
+    expect(result.current.fields.positiveNumber.error).toBeUndefined()
+
+    set(result.current.fields.positiveNumber, 0)
+    isValid = await validate(result.current)
+    expect(isValid).toBeFalsy()
+    expect(result.current.fields.positiveNumber.error).toEqual(
+      'This field must be greater than zero.'
+    )
+  })
+
+  it('should allow 0 for nonNegative rule by default', async () => {
+    type SpecificObject = { nonNegativeNumber: number }
+    let isValid
+
+    const { result } = render<SpecificObject>({
+      nonNegativeNumber: nonNegativeNumberField()
+    })
+
+    set(result.current.fields.nonNegativeNumber, 2)
+    isValid = await validate(result.current)
+    expect(isValid).toBeTruthy()
+    expect(result.current.fields.nonNegativeNumber.error).toBeUndefined()
+
+    set(result.current.fields.nonNegativeNumber, 0)
+    isValid = await validate(result.current)
+    expect(isValid).toBeTruthy()
+    expect(result.current.fields.nonNegativeNumber.error).toBeUndefined()
+  })
+
+  it('should not allow -1 for nonNegative rule by default', async () => {
+    type SpecificObject = { nonNegativeNumber: number }
+    let isValid
+
+    const { result } = render<SpecificObject>({
+      nonNegativeNumber: nonNegativeNumberField()
+    })
+
+    set(result.current.fields.nonNegativeNumber, 2)
+    isValid = await validate(result.current)
+    expect(isValid).toBeTruthy()
+    expect(result.current.fields.nonNegativeNumber.error).toBeUndefined()
+
+    set(result.current.fields.nonNegativeNumber, -1)
+    isValid = await validate(result.current)
+    expect(isValid).toBeFalsy()
+    expect(result.current.fields.nonNegativeNumber.error).toEqual(
+      'This field must be greater than or equal to zero.'
+    )
   })
 })
 
@@ -603,9 +636,7 @@ describe('useForm validation rules', () => {
       aWidget({ details: { description: null as any, picture: 'bytes' } })
     )
 
-    act(() => {
-      result.current.validate()
-    })
+    await validate(result.current)
 
     const { fields } = result.current
     expect(fields.details.picture.error).toEqual(
@@ -613,6 +644,19 @@ describe('useForm validation rules', () => {
     )
   })
 })
+
+function set<T>(field: Field<T>, value: T): void {
+  act(() => field.setValue(value))
+}
+
+async function validate<T>(currentForm: UseForm<T>): Promise<boolean> {
+  const { validate } = currentForm
+  let isValid: boolean = false
+  await act(async () => {
+    isValid = await validate()
+  })
+  return Promise.resolve(isValid)
+}
 
 function render<T>(
   fieldDefs: FieldDefinitions<T>,

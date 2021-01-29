@@ -1,4 +1,10 @@
-import { nonEmpty, required, ValidationRule } from './rules'
+import {
+  nonEmpty,
+  nonNegativeNumber,
+  positiveNumber,
+  required,
+  ValidationRule
+} from './rules'
 import { FieldDefinition } from './types'
 
 export type FieldProps<T> = {
@@ -30,6 +36,18 @@ export function numberField(
   props?: FieldProps<number>
 ): FieldDefinition<number> {
   return field({ default: 0, ...props })
+}
+
+export function positiveNumberField(
+  props?: FieldProps<number>
+): FieldDefinition<number> {
+  return field({ default: 1, rules: [positiveNumber], ...props })
+}
+
+export function nonNegativeNumberField(
+  props?: FieldProps<number>
+): FieldDefinition<number> {
+  return field({ default: 0, rules: [nonNegativeNumber], ...props })
 }
 
 export function arrayField<T>(props?: FieldProps<T[]>): FieldDefinition<T[]> {

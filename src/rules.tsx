@@ -19,3 +19,15 @@ export const nonEmpty: ValidationRule<Array<any>, any> = input => {
     ? "This field can't be empty."
     : undefined
 }
+
+export const positiveNumber: ValidationRule<number, any> = value => {
+  return value === undefined || value === null || value <= 0
+    ? 'This field must be greater than zero.'
+    : undefined
+}
+
+export const nonNegativeNumber: ValidationRule<number, any> = value => {
+  return value === undefined || value === null || value < 0
+    ? 'This field must be greater than or equal to zero.'
+    : undefined
+}
