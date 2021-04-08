@@ -1,8 +1,9 @@
-import produce from 'immer'
-import get from 'lodash.get'
-import set from 'lodash.set'
-import { useCallback, useMemo, useState } from 'react'
-import { ValidationRule } from './rules'
+import produce from "immer"
+import get from "lodash.get"
+import set from "lodash.set"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { useDebounce } from "./useDebounce"
+import { ValidationRule } from "./rules"
 import {
   EmptySetValueOptions,
   FieldDefinition,
@@ -12,8 +13,8 @@ import {
   FieldState,
   SetValueOptions,
   SetValueReturnType
-} from './types'
-import { forEach } from './utils'
+} from "./types"
+import { forEach } from "./utils"
 
 export type UseForm<T> = {
   fields: Fields<T> // field bindings
@@ -26,7 +27,8 @@ export type UseForm<T> = {
 
 export function useForm<T extends Record<string, any>>(
   fieldDefs: FieldDefinitions<T>,
-  defaultValue?: T
+  defaultValue?: T,
+  onStateChange?: (value: T) => void
 ): UseForm<T> {
   const initialState = useMemo(() => getInitialState(fieldDefs, defaultValue), [
     fieldDefs,
@@ -42,6 +44,10 @@ export function useForm<T extends Record<string, any>>(
     setState,
     initialState
   ])
+
+  const notifyValueChangeObserver = useDebounce(() => {
+    if (onStateChange) onStateChange(extractValuesFromFieldsState(state))
+  }, 600)
 
   const isEmpty = useMemo(() => {
     const hasValue = exists<FieldsState<T>>(
@@ -62,10 +68,21 @@ export function useForm<T extends Record<string, any>>(
     return hasTouched
   }, [state])
 
+  useEffect(() => {
+    if (isTouched) notifyValueChangeObserver()
+  }, [state, notifyValueChangeObserver, isTouched])
+
   const getValue = useCallback(() => extractValuesFromFieldsState(state), [
     state
   ])
-  return { getValue, validate, fields, isEmpty, reset, isTouched }
+  return {
+    getValue,
+    validate,
+    fields,
+    isEmpty,
+    reset,
+    isTouched
+  }
 }
 
 function getInitialState<T>(
