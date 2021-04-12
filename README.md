@@ -102,7 +102,7 @@ type UseForm<T> = {
   reset: () => void // reset form to initial state
 }
 
-function useForm<T>(fieldDefinitions: FieldDefinitions<T>, defaultValue?: T): UseForm<T>
+function useForm<T>(fieldDefinitions: FieldDefinitions<T>, defaultValue?: T, onStateChange?: (value: T) => void): UseForm<T>
 ```
 
 ### fields: Fields<T>
