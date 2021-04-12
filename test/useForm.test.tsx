@@ -588,6 +588,25 @@ describe('useForm', () => {
       'This field must be greater than or equal to zero.'
     )
   })
+
+  it('should change call callback when state changes', async () => {
+    const onStateChange = jest.fn()
+    const { result } = renderHook(() =>
+      useForm<{ name: string }>(
+        {
+          name: field()
+        },
+        undefined,
+        onStateChange
+      )
+    )
+
+    act(() => {
+      result.current.fields.name.setValue('Change Name')
+    })
+    await act(async () => await new Promise(resolve => setTimeout(resolve, 700)))
+    expect(onStateChange).toHaveBeenCalledWith({ name: 'Change Name' })
+  })
 })
 
 describe('useForm validation rules', () => {
