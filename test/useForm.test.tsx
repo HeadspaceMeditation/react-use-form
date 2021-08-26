@@ -597,14 +597,14 @@ describe('useForm', () => {
           name: field()
         },
         undefined,
-        onStateChange
+        { onStateChange, delay: 0 }
       )
     )
 
     act(() => {
       result.current.fields.name.setValue('Change Name')
     })
-    await act(async () => await new Promise(resolve => setTimeout(resolve, 700)))
+    await act(async () => new Promise(resolve => setTimeout(resolve, 0)))
     expect(onStateChange).toHaveBeenCalledWith({ name: 'Change Name' })
   })
 })

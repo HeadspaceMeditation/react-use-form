@@ -2,7 +2,6 @@ import produce from "immer"
 import get from "lodash.get"
 import set from "lodash.set"
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { useDebounce } from "./useDebounce"
 import { ValidationRule } from "./rules"
 import {
   EmptySetValueOptions,
@@ -14,6 +13,7 @@ import {
   SetValueOptions,
   SetValueReturnType
 } from "./types"
+import { useDebounce } from "./useDebounce"
 import { forEach } from "./utils"
 
 export type UseForm<T> = {
@@ -25,11 +25,17 @@ export type UseForm<T> = {
   reset: () => void
 }
 
+export type Option<T> = {
+  onStateChange: (value: T) => void
+  delay: number
+}
+
 export function useForm<T extends Record<string, any>>(
   fieldDefs: FieldDefinitions<T>,
   defaultValue?: T,
-  onStateChange?: (value: T) => void
+  option: Partial<Option<T>> = {}
 ): UseForm<T> {
+  const { onStateChange, delay = 600 } = option
   const initialState = useMemo(() => getInitialState(fieldDefs, defaultValue), [
     fieldDefs,
     defaultValue
@@ -47,7 +53,7 @@ export function useForm<T extends Record<string, any>>(
 
   const notifyValueChangeObserver = useDebounce(() => {
     if (onStateChange) onStateChange(extractValuesFromFieldsState(state))
-  }, 600)
+  }, delay)
 
   const isEmpty = useMemo(() => {
     const hasValue = exists<FieldsState<T>>(
