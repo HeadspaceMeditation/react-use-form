@@ -1,4 +1,4 @@
-name: Unnit Test
+name: Unit Test
 
 on:
   pull_request:
