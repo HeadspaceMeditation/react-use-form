@@ -13,7 +13,7 @@ export type Field<T> = {
     value: T,
     options?: U
   ) => SetValueReturnType<U>
-  reset: () => void
+  reset: (value?: T) => void
   validate: () => void
 }
 

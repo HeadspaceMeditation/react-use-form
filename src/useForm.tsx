@@ -1,8 +1,8 @@
-import produce from "immer"
-import get from "lodash.get"
-import set from "lodash.set"
-import { useCallback, useEffect, useMemo, useState } from "react"
-import { ValidationRule } from "./rules"
+import produce from 'immer'
+import get from 'lodash.get'
+import set from 'lodash.set'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { ValidationRule } from './rules'
 import {
   EmptySetValueOptions,
   FieldDefinition,
@@ -12,9 +12,9 @@ import {
   FieldState,
   SetValueOptions,
   SetValueReturnType
-} from "./types"
-import { useDebounce } from "./useDebounce"
-import { forEach } from "./utils"
+} from './types'
+import { useDebounce } from './useDebounce'
+import { forEach } from './utils'
 
 export type UseForm<T> = {
   fields: Fields<T> // field bindings
@@ -22,7 +22,7 @@ export type UseForm<T> = {
   getValue: () => T // retrieve the current form value
   isEmpty: boolean // true if all fields are undefined, null or ""
   isTouched: boolean
-  reset: () => void
+  reset: (value?: T) => void
 }
 
 export type Option<T> = {
@@ -46,10 +46,10 @@ export function useForm<T extends Record<string, any>>(
     initialState
   ])
   const validate = useCallback(() => runValidation(setState), [setState])
-  const reset = useCallback(() => resetForm(initialState, setState), [
-    setState,
-    initialState
-  ])
+  const reset = useCallback(
+    (value?: T) => resetForm(initialState, setState, value),
+    [setState, initialState]
+  )
 
   const notifyValueChangeObserver = useDebounce(() => {
     if (onStateChange) onStateChange(extractValuesFromFieldsState(state))
@@ -166,11 +166,11 @@ function createFields<T>(
               return undefined as SetValueReturnType<U>
             }
           },
-          reset: () => {
+          reset: (resetWithValue?: T) => {
             setState(currentState =>
               produce(currentState, updatedState => {
                 const value = get(initialState, [...path, 'value'])
-                set(updatedState, [...path, 'value'], value)
+                set(updatedState, [...path, 'value'], resetWithValue ?? value)
                 set(updatedState, [...path, 'error'], undefined)
                 set(updatedState, [...path, 'touched'], false)
               })
@@ -230,13 +230,14 @@ function maybeGetFirstValidationError<T, U>(
 
 function resetForm<T>(
   initialState: FieldsState<T>,
-  setState: (f: (state: FieldsState<T>) => FieldsState<T>) => void
+  setState: (f: (state: FieldsState<T>) => FieldsState<T>) => void,
+  resetWithValue: T | undefined
 ): void {
   setState(() => {
     return produce(initialState, updatedState => {
       forEach(initialState, (path, field) => {
         const { value } = (field as unknown) as FieldState<T>
-        set(updatedState, [...path, 'value'], value)
+        set(updatedState, [...path, 'value'], resetWithValue ?? value)
         set(updatedState, [...path, 'error'], undefined)
         set(updatedState, [...path, 'touched'], false)
       })
