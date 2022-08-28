@@ -464,7 +464,58 @@ describe('useForm', () => {
     expect(result.current.fields.name.error).toBeUndefined()
   })
 
-  it('should allow resetting form to default', () => {
+  it('should allow resetting form', () => {
+    const existingWidget: Widget = {
+      name: 'Widget',
+      components: [{ id: 'component-1' }],
+      details: {
+        description: 'Description',
+        picture: 'Picture'
+      }
+    }
+
+    const { result } = render<Widget>(
+      {
+        name: field(),
+        components: field(),
+        details: {
+          description: field(),
+          picture: field()
+        }
+      },
+      existingWidget
+    )
+
+    set(result.current.fields.name, 'Updated Widget')
+    set(result.current.fields.details.description, 'Updated Description')
+
+    expect(result.current.fields.name.value).toEqual('Updated Widget')
+    expect(result.current.fields.name.touched).toEqual(true)
+    expect(result.current.fields.details.description.value).toEqual(
+      'Updated Description'
+    )
+    expect(result.current.fields.details.description.touched).toEqual(true)
+
+    act(() => {
+      result.current.reset(
+        aWidget({
+          name: 'Widget A',
+          details: {
+            description: 'Description after reset',
+            picture: ''
+          }
+        })
+      )
+    })
+    expect(result.current.fields.name.value).toEqual('Widget A')
+    expect(result.current.fields.name.touched).toEqual(false)
+    expect(result.current.fields.details.description.value).toEqual(
+      'Description after reset'
+    )
+    expect(result.current.fields.details.description.touched).toEqual(false)
+  })
+
+  it('should allow resetting form to default when a reset value is not provided', () => {
     const existingWidget: Widget = {
       name: 'Widget',
       components: [{ id: 'component-1' }],

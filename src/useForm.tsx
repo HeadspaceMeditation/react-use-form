@@ -237,7 +237,11 @@ function resetForm<T>(
     return produce(initialState, updatedState => {
       forEach(initialState, (path, field) => {
         const { value } = (field as unknown) as FieldState<T>
-        set(updatedState, [...path, 'value'], resetWithValue ?? value)
+        set(
+          updatedState,
+          [...path, 'value'],
+          get(resetWithValue, path) ?? value
+        )
         set(updatedState, [...path, 'error'], undefined)
         set(updatedState, [...path, 'touched'], false)
       })
