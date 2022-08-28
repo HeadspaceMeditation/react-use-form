@@ -753,7 +753,7 @@ async function validate<T>(currentForm: UseForm<T>): Promise<boolean> {
   return Promise.resolve(isValid)
 }
 
-function render<T>(
+function render<T extends Record<string, any>>(
   fieldDefs: FieldDefinitions<T>,
   defaultValue?: T
 ): RenderHookResult<unknown, UseForm<T>> {
