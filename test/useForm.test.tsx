@@ -19,9 +19,6 @@ const noInvalidName: ValidationRule<string, any> = name =>
   name === 'InvalidName' ? "name can't be 'InvalidName'" : undefined
 
 describe('useForm', () => {
-  it('should fail', () => {
-    expect(2 + 2).toEqual(3)
-  })
   it('should initialize every field as undefined by default', () => {
     const { result } = render<Widget>({
       name: field(),
