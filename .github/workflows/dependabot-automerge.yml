@@ -1,0 +1,25 @@
+name: automerge
+on:
+  pull_request_target:
+    types:
+      - labeled
+      - opened
+      - reopened
+
+jobs:
+  automerge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: automerge
+        #Currently have the action forked and pinned to a commit in my repository
+        uses: 'pascalgn/automerge-action@01fb84a9d077930bf9d16d1f7fa3fe2ffe45aabe'
+        env:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+          MERGE_FILTER_AUTHOR: 'dependabot[bot]'
+          # Dependabot creates a PR with the "dependencies" label and the specific language
+          MERGE_LABELS: 'dependencies'
+          # Can also use "rebase" or "squash"
+          MERGE_METHOD: 'merge'
+          # How long to sleep in between 7 merge tries. Currently set to 1 minute.
+          MERGE_RETRY_SLEEP: '60000'
+          MERGE_RETRIES: '7'
