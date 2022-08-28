@@ -390,7 +390,7 @@ describe('useForm', () => {
     expect(secondValidation).toEqual(false)
   })
 
-  it('should reset field value to default', async () => {
+  it('should reset field value to default when a reset value is not provided', async () => {
     const { result } = render<Widget>({
       name: field(),
       details: {
@@ -412,6 +412,31 @@ describe('useForm', () => {
     })
 
     expect(result.current.fields.name.value).toEqual(undefined)
+    expect(result.current.fields.name.touched).toEqual(false)
+  })
+
+  it('should reset field value', async () => {
+    const { result } = render<Widget>({
+      name: field(),
+      details: {
+        description: field(),
+        picture: field()
+      },
+      components: field()
+    })
+
+    act(() => {
+      result.current.fields.name.setValue('Widget A')
+    })
+
+    expect(result.current.fields.name.value).toEqual('Widget A')
+    expect(result.current.fields.name.touched).toEqual(true)
+
+    act(() => {
+      result.current.fields.name.reset('Widget B')
+    })
+
+    expect(result.current.fields.name.value).toEqual('Widget B')
     expect(result.current.fields.name.touched).toEqual(false)
   })
 
