@@ -22,7 +22,10 @@ export function forEach<T>(
   }
 }
 
-export function validate<T>(data: T, fieldDefs: FieldDefinitions<T>): boolean {
+export function validate<T extends Record<string, any>>(
+  data: T,
+  fieldDefs: FieldDefinitions<T>
+): boolean {
   let isValid = true
   forEach<FieldDefinition<any>>(fieldDefs, (path, { rules }) => {
     const value = get(data, path)

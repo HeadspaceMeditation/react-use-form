@@ -91,7 +91,7 @@ export function useForm<T extends Record<string, any>>(
   }
 }
 
-function getInitialState<T>(
+function getInitialState<T extends Record<string, any>>(
   fieldDefs: FieldDefinitions<T>,
   defaultValue?: T
 ): FieldsState<T> {
