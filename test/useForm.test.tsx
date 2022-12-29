@@ -683,6 +683,48 @@ describe('useForm', () => {
     await act(async () => new Promise(resolve => setTimeout(resolve, 0)))
     expect(onStateChange).toHaveBeenCalledWith({ name: 'Change Name' })
   })
+
+  it('should call change callback when component unmount', async () => {
+    const onStateChange = jest.fn()
+    const { result, unmount } = renderHook(() =>
+      useForm<{ name: string }>(
+        {
+          name: field()
+        },
+        undefined,
+        { onStateChange, delay: 10000, callOnStateChangeOnUnmount: true }
+      )
+    )
+
+    act(() => {
+      result.current.fields.name.setValue('Change Name')
+    })
+
+    unmount()
+
+    expect(onStateChange).toHaveBeenCalledWith({ name: 'Change Name' })
+  })
+
+  it('should not call change callback when component unmount if callOnStateChangeOnUnmount is false', async () => {
+    const onStateChange = jest.fn()
+    const { result, unmount } = renderHook(() =>
+      useForm<{ name: string }>(
+        {
+          name: field()
+        },
+        undefined,
+        { onStateChange, delay: 10000 }
+      )
+    )
+
+    act(() => {
+      result.current.fields.name.setValue('Change Name')
+    })
+
+    unmount()
+
+    expect(onStateChange).not.toHaveBeenCalled()
+  })
 })
 
 describe('useForm validation rules', () => {
