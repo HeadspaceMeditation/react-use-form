@@ -95,14 +95,14 @@ function NumberField(props: { label: string; field: Field<number> }) {
 
 type UseForm<T> = {
   fields: Fields<T> // field bindings
-  validate: () => Promise<boolean> // trigger validation
+  validate: () => boolean // trigger validation
   getValue: () => T // retrieve the current form value
   isEmpty: boolean // true if all fields are undefined, null or ""
   isTouched: boolean // true if any of the field-level `touched` is true
-  reset: (value?: T) => void // reset form to initial state
+  reset: () => void // reset form to initial state
 }
 
-function useForm<T extends Record<string, any>>(fieldDefs: FieldDefinitions<T>, defaultValue?: T, option?: Partial<Option<T>>): UseForm<T>
+function useForm<T>(fieldDefinitions: FieldDefinitions<T>, defaultValue?: T, onStateChange?: (value: T) => void): UseForm<T>
 ```
 
 ### fields: Fields<T>
@@ -147,43 +147,9 @@ But if you want to update your field value _and_ run validation at the same time
 
 The first error triggered by your validation rules or `undefined`
 
-#### validate: () => Promise<boolean>
+#### validate: () => void
 
 The `validate` handler for this property. Calling this triggers the validation rules for this property and triggers a re-render.
-
-## Options
-
-```TypeScript
-type Option<T> = {
-  onStateChange: (value: T) => void
-  delay: number
-  callOnStateChangeOnUnmount: boolean
-}
-```
-
-### onStateChange
-
-The `onStateChange` option allows you to hook into the fields state change lifecycle. This is useful for things like:
-
-- Persisting your form state to local storage
-- Sending analytics events when a user changes a field
-- Sending a "draft" to your API
-- Auto-saving your form state to your API
-
-default: `undefined`
-### delay
-
-The `delay` option sets the number of milliseconds to wait before calling the `onStateChange` callback using a debounced function. This is useful if you want to throttle the number of times your `onStateChange` callback is called.
-
-The debounce mechanism prevents the `onStateChange` callback from being called until the user has stopped typing on form fields for at least `delay` milliseconds.
-
-default: `600`
-
-### callOnStateChangeOnUnmount
-
-The `callOnStateChangeOnUnmount` option allows you to control whether or not the `onStateChange` callback is called when the component unmounts. This is useful if when your delay is set to a high value and you want to make sure the `onStateChange` callback is called when the component unmounts.
-
-default: `false`
 
 ## Default Values
 
