@@ -27,17 +27,7 @@ export type UseForm<T> = {
 
 export type Option<T> = {
   onStateChange: (value: T) => void
-  /**
-   * debounce delay for onStateChange in miliseconds, it prevents onStateChange from being called on every field change
-   * - default: 600ms - set to 0 to disable debounce
-   */
   delay: number
-  /**
-   * if true, onStateChange will be called on unmount
-   * - default: false
-   * - useful for forms that are not submitted, but the value is still needed for cleanup purposes (e.g. auto save features)
-   */
-  callOnStateChangeOnUnmount: boolean
 }
 
 export function useForm<T extends Record<string, any>>(
@@ -45,11 +35,7 @@ export function useForm<T extends Record<string, any>>(
   defaultValue?: T,
   option: Partial<Option<T>> = {}
 ): UseForm<T> {
-  const {
-    onStateChange,
-    delay = 600,
-    callOnStateChangeOnUnmount = false
-  } = option
+  const { onStateChange, delay = 600 } = option
   const initialState = useMemo(() => getInitialState(fieldDefs, defaultValue), [
     fieldDefs,
     defaultValue
@@ -65,12 +51,8 @@ export function useForm<T extends Record<string, any>>(
     [setState, initialState]
   )
 
-  const onStateChangeHandler = useCallback(() => {
-    if (onStateChange) onStateChange(extractValuesFromFieldsState(state))
-  }, [state, onStateChange])
-
   const notifyValueChangeObserver = useDebounce(() => {
-    onStateChangeHandler()
+    if (onStateChange) onStateChange(extractValuesFromFieldsState(state))
   }, delay)
 
   const isEmpty = useMemo(() => {
@@ -94,16 +76,7 @@ export function useForm<T extends Record<string, any>>(
 
   useEffect(() => {
     if (isTouched) notifyValueChangeObserver()
-    return () => {
-      if (callOnStateChangeOnUnmount) onStateChangeHandler()
-    }
-  }, [
-    state,
-    notifyValueChangeObserver,
-    isTouched,
-    callOnStateChangeOnUnmount,
-    onStateChangeHandler
-  ])
+  }, [state, notifyValueChangeObserver, isTouched])
 
   const getValue = useCallback(() => extractValuesFromFieldsState(state), [
     state
